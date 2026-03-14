@@ -644,9 +644,18 @@ class _AppCard extends StatelessWidget {
 
   const _AppCard({required this.app});
 
+  String? get _cardImageUrl {
+    if (app.iconUrl != null && app.iconUrl!.isNotEmpty) return app.iconUrl;
+    if (app.screenshotUrls.isNotEmpty) return app.screenshotUrls.first;
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final imageUrl = _cardImageUrl;
+
     return GlassCard(
+      padding: EdgeInsets.zero,
       onTap: () {
         Navigator.of(context).push(
           MaterialPageRoute(
@@ -657,55 +666,72 @@ class _AppCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: PortfolioTheme.accentPrimary.withValues(alpha: 0.18),
-              borderRadius: BorderRadius.circular(16),
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+            child: AspectRatio(
+              aspectRatio: 16 / 10,
+              child: imageUrl != null
+                  ? Image.network(
+                      imageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => _appCardImagePlaceholder(context),
+                    )
+                  : _appCardImagePlaceholder(context),
             ),
-            child: const Icon(
-              Icons.apps,
-              color: PortfolioTheme.accentPrimary,
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  app.name,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: PortfolioTheme.textPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  app.shortDescription,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: PortfolioTheme.textSecondary,
+                      ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '৳${app.priceBdt}',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: PortfolioTheme.accentPrimary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                    Text(
+                      'View',
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                            color: PortfolioTheme.textSecondary,
+                          ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            app.name,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: PortfolioTheme.textPrimary,
-                  fontWeight: FontWeight.w600,
-                ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            app.shortDescription,
-            maxLines: 3,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: PortfolioTheme.textSecondary,
-                ),
-          ),
-          const Spacer(),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '৳${app.priceBdt}',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: PortfolioTheme.accentPrimary,
-                      fontWeight: FontWeight.w600,
-                    ),
-              ),
-              Text(
-                'View',
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: PortfolioTheme.textSecondary,
-                    ),
-              ),
-            ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _appCardImagePlaceholder(BuildContext context) {
+    return Container(
+      color: PortfolioTheme.accentPrimary.withValues(alpha: 0.12),
+      child: const Center(
+        child: Icon(Icons.apps_rounded, color: PortfolioTheme.accentPrimary, size: 48),
       ),
     );
   }
@@ -739,99 +765,148 @@ class _PortfolioSection extends StatelessWidget {
                   (p) => Padding(
                     padding: const EdgeInsets.only(bottom: 16),
                     child: GlassCard(
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            width: 56,
-                            height: 56,
-                            decoration: BoxDecoration(
-                              color: PortfolioTheme.card,
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            child: const Icon(
-                              Icons.phone_android,
-                              color: PortfolioTheme.accentPrimary,
-                            ),
-                          ),
-                          const SizedBox(width: 20),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                      padding: EdgeInsets.zero,
+                      child: isSmall
+                          ? Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                Text(
-                                  p.title,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleLarge
-                                      ?.copyWith(
-                                        color: PortfolioTheme.textPrimary,
-                                      ),
+                                ClipRRect(
+                                  borderRadius: const BorderRadius.vertical(
+                                    top: Radius.circular(16),
+                                  ),
+                                  child: AspectRatio(
+                                    aspectRatio: 16 / 9,
+                                    child: p.imageUrl != null && p.imageUrl!.isNotEmpty
+                                        ? Image.network(
+                                            p.imageUrl!,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (_, __, ___) =>
+                                                _portfolioImagePlaceholderSmall(context),
+                                          )
+                                        : _portfolioImagePlaceholderSmall(context),
+                                  ),
                                 ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  p.role,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .labelMedium
-                                      ?.copyWith(
-                                        color: PortfolioTheme.textMuted,
-                                      ),
+                                Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: _portfolioCardContent(context, p),
                                 ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  p.description,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium
-                                      ?.copyWith(
-                                        color: PortfolioTheme.textSecondary,
-                                      ),
+                              ],
+                            )
+                          : Row(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                ClipRRect(
+                                  borderRadius: const BorderRadius.horizontal(
+                                    left: Radius.circular(16),
+                                  ),
+                                  child: SizedBox(
+                                    width: 160,
+                                    child: p.imageUrl != null && p.imageUrl!.isNotEmpty
+                                        ? Image.network(
+                                            p.imageUrl!,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (_, __, ___) =>
+                                                _portfolioImagePlaceholder(context),
+                                          )
+                                        : _portfolioImagePlaceholder(context),
+                                  ),
                                 ),
-                                const SizedBox(height: 10),
-                                Wrap(
-                                  spacing: 8,
-                                  runSpacing: 6,
-                                  children: p.technologies
-                                      .map(
-                                        (t) => Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 10,
-                                            vertical: 4,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color:
-                                                PortfolioTheme.surface,
-                                            borderRadius:
-                                                BorderRadius.circular(4),
-                                            border: Border.all(
-                                                color: PortfolioTheme.border),
-                                          ),
-                                          child: Text(
-                                            t,
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .labelSmall
-                                                ?.copyWith(
-                                                  color: PortfolioTheme
-                                                      .textSecondary,
-                                                ),
-                                          ),
-                                        ),
-                                      )
-                                      .toList(),
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+                                    child: _portfolioCardContent(context, p),
+                                  ),
                                 ),
                               ],
                             ),
-                          ),
-                        ],
-                      ),
                     ),
                   ),
                 )
                 .toList(),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _portfolioCardContent(BuildContext context, PortfolioProject p) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          p.title,
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                color: PortfolioTheme.textPrimary,
+              ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          p.role,
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: PortfolioTheme.textMuted,
+              ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          p.description,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: PortfolioTheme.textSecondary,
+              ),
+        ),
+        const SizedBox(height: 10),
+        Wrap(
+          spacing: 8,
+          runSpacing: 6,
+          children: p.technologies
+              .map(
+                (t) => Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: PortfolioTheme.surface,
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: PortfolioTheme.border),
+                  ),
+                  child: Text(
+                    t,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: PortfolioTheme.textSecondary,
+                        ),
+                  ),
+                ),
+              )
+              .toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _portfolioImagePlaceholder(BuildContext context) {
+    return Container(
+      width: 160,
+      color: PortfolioTheme.accentPrimary.withValues(alpha: 0.12),
+      child: const Center(
+        child: Icon(
+          Icons.phone_android,
+          color: PortfolioTheme.accentPrimary,
+          size: 40,
+        ),
+      ),
+    );
+  }
+
+  Widget _portfolioImagePlaceholderSmall(BuildContext context) {
+    return Container(
+      color: PortfolioTheme.accentPrimary.withValues(alpha: 0.12),
+      child: const Center(
+        child: Icon(
+          Icons.phone_android,
+          color: PortfolioTheme.accentPrimary,
+          size: 40,
+        ),
       ),
     );
   }
