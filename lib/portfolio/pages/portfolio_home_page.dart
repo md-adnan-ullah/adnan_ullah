@@ -16,6 +16,7 @@ import '../widgets/glass_card.dart';
 import '../widgets/section_header.dart';
 import '../widgets/skill_badge.dart';
 import 'app_detail_page.dart';
+import 'purchase_admin_page.dart';
 
 class PortfolioHomePage extends StatefulWidget {
   const PortfolioHomePage({super.key});
@@ -115,6 +116,20 @@ class _PortfolioHomePageState extends State<PortfolioHomePage> {
                 onNavigateToPortfolio: () => _scrollTo(1400),
                 onNavigateToPricing: () => _scrollTo(600),
                 onNavigateToContact: () => _scrollTo(2200),
+                onAdminTap: () async {
+                  final ok = await PurchaseAdminPage.checkCredentials(context);
+                  if (ok && context.mounted) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const PurchaseAdminPage(),
+                      ),
+                    );
+                  } else if (context.mounted && ok == false) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Invalid username or password')),
+                    );
+                  }
+                },
               ),
               SizedBox(height: isSmall ? 32 : 48),
             ],
@@ -1282,12 +1297,14 @@ class _Footer extends StatelessWidget {
     required this.onNavigateToPortfolio,
     required this.onNavigateToPricing,
     required this.onNavigateToContact,
+    required this.onAdminTap,
   });
 
   final VoidCallback onNavigateToApps;
   final VoidCallback onNavigateToPortfolio;
   final VoidCallback onNavigateToPricing;
   final VoidCallback onNavigateToContact;
+  final VoidCallback onAdminTap;
 
   static const String _email = 'saadnanullah@gmail.com';
   static const String _linkedIn = 'https://linkedin.com/in/adnan-ullah';
@@ -1326,6 +1343,7 @@ class _Footer extends StatelessWidget {
               _FooterLink(label: 'Apps', onTap: onNavigateToApps),
               _FooterLink(label: 'Pricing', onTap: onNavigateToPricing),
               _FooterLink(label: 'Contact', onTap: onNavigateToContact),
+              _FooterLink(label: 'Admin', onTap: onAdminTap),
             ],
           ),
           const SizedBox(height: 20),

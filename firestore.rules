@@ -1,0 +1,19 @@
+rules_version = '2';
+// Firestore rules for the portfolio app.
+// Deploy: firebase deploy --only firestore:rules
+// Or copy these rules into Firebase Console → Firestore Database → Rules.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Purchase tracking: app writes on submit; app reads on check status.
+    // You can tighten later with auth (e.g. allow read, write: if request.auth != null).
+    match /purchases/{transactionId} {
+      allow create, update, read: if true;
+    }
+    // Admin credentials: app only reads to verify login. Add/edit admins in Firebase Console.
+    match /superadmin/{docId} {
+      allow read: if true;
+      allow create, update, delete: if false;
+    }
+  }
+}

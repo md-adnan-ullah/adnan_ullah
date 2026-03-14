@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gems_responsive/gems_responsive.dart';
@@ -5,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../config/seller_config.dart';
 import '../models/portfolio_app.dart';
+import '../models/purchase_record.dart';
 import '../utils/portfolio_theme.dart';
 import '../widgets/glass_card.dart';
 import '../services/manual_purchase_service.dart';
@@ -732,6 +735,9 @@ class _ManualPayDialogState extends State<_ManualPayDialog> {
         app: widget.app,
         email: _emailController.text.trim().isEmpty ? null : _emailController.text.trim(),
         paymentMethod: _isBank ? 'bank' : 'bkash',
+      ).timeout(
+        const Duration(seconds: 15),
+        onTimeout: () => throw TimeoutException('Request timed out'),
       );
       if (!mounted) return;
       widget.onSubmitted();
@@ -747,8 +753,18 @@ class _ManualPayDialogState extends State<_ManualPayDialog> {
           actions: [FilledButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('OK'))],
         ),
       );
+    } on TimeoutException {
+      if (mounted) setState(() {
+        _error = 'Request timed out. Check your internet connection and try again.';
+        _submitting = false;
+      });
     } catch (e) {
-      if (mounted) setState(() { _error = e.toString(); _submitting = false; });
+      if (mounted) setState(() {
+        _error = 'Could not submit. Check your connection and try again.';
+        _submitting = false;
+      });
+    } finally {
+      if (mounted) setState(() => _submitting = false);
     }
   }
 
@@ -922,19 +938,54 @@ class _VerifyPurchaseDialogState extends State<_VerifyPurchaseDialog> {
     }
     setState(() { _checking = true; _message = null; _verified = false; });
     try {
-      final status = await widget.purchaseService.checkStatus(transactionId: trx, appId: widget.app.id);
+      final storedToken = await widget.purchaseService.getStoredClaimToken(widget.app.id);
+      final result = await widget.purchaseService.checkStatus(
+        transactionId: trx,
+        appId: widget.app.id,
+        storedClaimToken: storedToken,
+      ).timeout(
+        const Duration(seconds: 15),
+        onTimeout: () => throw TimeoutException('Request timed out'),
+      );
       if (!mounted) return;
-      if (status == 'verified') {
-        await widget.purchaseService.saveVerifiedLocally(appId: widget.app.id, transactionId: trx);
-        setState(() { _message = null; _verified = true; _checking = false; });
-        widget.onVerified();
-      } else if (status == 'pending') {
-        setState(() { _message = "We're still verifying your payment. Try again later."; _checking = false; });
-      } else {
-        setState(() { _message = 'Transaction ID not found or not for this app.'; _checking = false; });
+      switch (result.status) {
+        case PurchaseCheckStatus.verified:
+          await widget.purchaseService.saveVerifiedLocally(
+            appId: widget.app.id,
+            transactionId: trx,
+            claimToken: result.claimToken,
+          );
+          setState(() { _message = null; _verified = true; _checking = false; });
+          widget.onVerified();
+          break;
+        case PurchaseCheckStatus.pending:
+          setState(() { _message = "We're still verifying your payment. Try again later."; _checking = false; });
+          break;
+        case PurchaseCheckStatus.claimedByOther:
+          setState(() {
+            _message = 'This purchase was already claimed by another device. Only that device can download the APK.';
+            _checking = false;
+          });
+          break;
+        case PurchaseCheckStatus.rejected:
+          setState(() { _message = 'This payment was rejected.'; _checking = false; });
+          break;
+        case PurchaseCheckStatus.notFound:
+          setState(() { _message = 'Transaction ID not found or not for this app.'; _checking = false; });
+          break;
       }
+    } on TimeoutException {
+      if (mounted) setState(() {
+        _message = 'Request timed out. Check your internet connection and try again.';
+        _checking = false;
+      });
     } catch (e) {
-      if (mounted) setState(() { _message = e.toString(); _checking = false; });
+      if (mounted) setState(() {
+        _message = 'Could not check status. Check your connection and try again.';
+        _checking = false;
+      });
+    } finally {
+      if (mounted) setState(() => _checking = false);
     }
   }
 
