@@ -6,7 +6,7 @@ Deploy Flow
 ```bash
 
 
-Add  <base href="/adnan_ullah/"> in web/index.html
+Add    <base href="/adnan_ullah/"/>  in web/index.html
 
 flutter build web --release
 rm -rf docs
