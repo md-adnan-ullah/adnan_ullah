@@ -468,6 +468,74 @@ class _BuyBar extends StatelessWidget {
 
   const _BuyBar({required this.app});
 
+  Future<void> _onBuyPressed(BuildContext context) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => const Center(
+        child: Card(
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('Opening bKash...'),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final result = await PortfolioPurchaseService().pay(context: context, app: app);
+
+    if (!context.mounted) return;
+    Navigator.of(context).pop();
+
+    if (result.success) {
+      await showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Payment successful'),
+          content: Text('Transaction ID: ${result.trxId}'),
+          actions: [
+            FilledButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('OK')),
+          ],
+        ),
+      );
+    } else {
+      final err = result.errorMessage ?? 'Something went wrong. Try again or contact support.';
+      await showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Payment failed'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SelectableText(err),
+              const SizedBox(height: 12),
+              SelectableText(
+                'Sandbox tip: run on Android or iOS; use bKash sandbox credentials.',
+                style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(ctx).colorScheme.outline,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isSmall = ResponsiveHelper.isSmallDevice(context);
@@ -538,24 +606,7 @@ class _BuyBar extends StatelessWidget {
                         borderRadius: BorderRadius.circular(14),
                       ),
                     ),
-                    onPressed: () async {
-                      final service = PortfolioPurchaseService();
-                      final result = await service.initiateBkashPayment(
-                        app: app,
-                        customerEmail: 'customer@example.com',
-                        customerPhone: '+8801XXXXXXXXX',
-                      );
-                      if (!context.mounted) return;
-                      if (result == null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              'bKash integration coming soon. Please contact me to purchase this app.',
-                            ),
-                          ),
-                        );
-                      }
-                    },
+                    onPressed: () => _onBuyPressed(context),
                     child: const Text('Buy with bKash'),
                   ),
                 ),

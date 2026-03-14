@@ -52,6 +52,9 @@ dependencies:
   google_fonts: ^6.2.1
   url_launcher: ^6.3.0
 
+  # bKash payment gateway (Bangladesh)
+  bkash: ^0.0.2
+
   # Use Flutter Gems responsive widgets (read-only dependency)
   gems_responsive:
     path: flutter_gems/packages/gems_responsive

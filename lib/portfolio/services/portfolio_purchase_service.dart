@@ -1,29 +1,62 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+
+import '../models/bkash_payment_result.dart';
 import '../models/portfolio_app.dart';
 import '../models/portfolio_purchase.dart';
+import 'package:bkash/bkash.dart';
 
 /// Handles the business logic around purchasing apps.
 ///
-/// This is intentionally backend‑agnostic for now so it works
-/// without Firebase. When you are ready, you can:
-///   - Integrate bKash payment API or hosted checkout
-///   - Verify payment in a Cloud Function / backend
-///   - Store purchases in Firestore
-///   - Generate secure, time‑limited download URLs
+/// Uses bKash payment gateway (sandbox by default). For production,
+/// provide [BkashCredentials] when creating [Bkash] (e.g. from env).
 class PortfolioPurchaseService {
   const PortfolioPurchaseService();
 
-  /// Entry point for starting a bKash payment.
-  ///
-  /// Returns a redirect URL or null if not implemented yet.
-  Future<String?> initiateBkashPayment({
+  static Bkash? _bkash;
+  static Bkash get _gateway => _bkash ??= Bkash(logResponse: true);
+
+  /// Simple bKash pay: open WebView → user pays → return result.
+  Future<BkashPaymentResult> pay({
+    required BuildContext context,
     required PortfolioApp app,
-    required String customerEmail,
-    required String customerPhone,
   }) async {
-    // TODO: Implement real bKash integration.
-    // For now, return null so the UI can show
-    // "Contact me to purchase" or describe your manual flow.
-    return null;
+    try {
+      final invoice = 'inv_${app.id}_${DateTime.now().millisecondsSinceEpoch}';
+      final res = await _gateway.pay(
+        context: context,
+        amount: app.priceBdt.toDouble(),
+        merchantInvoiceNumber: invoice,
+      );
+      return BkashPaymentResult.success(
+        trxId: res.trxId,
+        paymentId: res.paymentId,
+        customerMsisdn: res.customerMsisdn,
+      );
+    } on BkashFailure catch (e) {
+      final msg = e.message;
+      final actual = e.error?.toString() ?? '';
+      final display = _pickMessage(msg, actual);
+      if (kDebugMode) {
+        debugPrint('BkashFailure: message=$msg, error=$actual');
+      }
+      return BkashPaymentResult.failure(display);
+    } catch (e, st) {
+      final msg = e.toString().replaceFirst(RegExp(r'^Exception:\s*'), '');
+      if (kDebugMode) {
+        debugPrint('Bkash error: $e');
+        debugPrint(st.toString());
+      }
+      return BkashPaymentResult.failure(msg);
+    }
+  }
+
+  static String _pickMessage(String message, String errorDetail) {
+    if (message != 'Something went wrong' && message.isNotEmpty) {
+      return errorDetail.isEmpty ? message : '$message — $errorDetail';
+    }
+    if (errorDetail.isNotEmpty) return errorDetail;
+    return 'Something went wrong. Sandbox: use Android/iOS; get credentials from bKash if needed.';
   }
 
   /// Creates a local purchase record once payment is verified.
@@ -54,4 +87,3 @@ class PortfolioPurchaseService {
     );
   }
 }
-
