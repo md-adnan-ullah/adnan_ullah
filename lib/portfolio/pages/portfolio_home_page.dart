@@ -580,9 +580,9 @@ class _PortfolioSection extends StatelessWidget {
 class _ContactSection extends StatelessWidget {
   const _ContactSection();
 
-  static const String _email = 'adnan@example.com';
-  static const String _linkedIn = 'https://linkedin.com/in/adnanullah';
-  static const String _github = 'https://github.com/adnanullah';
+  static const String _email = 'saadnanullah@gmail.com';
+  static const String _linkedIn = 'https://linkedin.com/in/adnan-ullah';
+  static const String _github = 'https://github.com/md-adnan-ullah';
 
   @override
   Widget build(BuildContext context) {
@@ -614,13 +614,13 @@ class _ContactSection extends StatelessWidget {
               _ContactRow(
                 icon: Icons.link,
                 label: 'LinkedIn',
-                value: 'linkedin.com/in/adnanullah',
+                value: 'linkedin.com/in/adnan-ullah',
                 onTap: () => _launch(_linkedIn),
               ),
               _ContactRow(
                 icon: Icons.code,
                 label: 'GitHub',
-                value: 'github.com/adnanullah',
+                value: 'github.com/md-adnan-ullah',
                 onTap: () => _launch(_github),
               ),
             ],
