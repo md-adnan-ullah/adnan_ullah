@@ -618,11 +618,20 @@ class _BuyBarState extends State<_BuyBar> {
                               'Secure APK after payment',
                               style: Theme.of(context).textTheme.bodySmall?.copyWith(color: PortfolioTheme.textMuted),
                             ),
-                            const SizedBox(height: 4),
-                            TextButton(
-                              style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero, tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+                            const SizedBox(height: 8),
+                            TextButton.icon(
                               onPressed: () => _onVerifyPressed(context),
-                              child: Text('Already paid? Enter transaction ID', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: PortfolioTheme.accentPrimary, decoration: TextDecoration.underline)),
+                              icon: const Icon(Icons.receipt_long_rounded, size: 20),
+                              label: const Text('Already paid? Enter transaction ID'),
+                              style: TextButton.styleFrom(
+                                foregroundColor: PortfolioTheme.accentPrimary,
+                                padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
+                                minimumSize: const Size(0, 44),
+                                textStyle: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                             ),
                           ],
                         ),

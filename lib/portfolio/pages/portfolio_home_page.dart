@@ -552,16 +552,12 @@ class _AboutSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final isSmall = ResponsiveHelper.isSmallDevice(context);
 
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: isSmall ? 24 : 72,
-        vertical: 48,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SectionHeader(
-            title: 'About',
+    final aboutContent = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const SectionHeader(
+          title: 'About',
             subtitle:
                 'Mobile developer focusing on Flutter and Android with a passion for\n'
                 'clean UX and reliable, scalable apps.',
@@ -581,6 +577,118 @@ class _AboutSection extends StatelessWidget {
             ),
           ),
         ],
+    );
+
+    const double bannerWidth = 180;
+    const double bannerAspectRatio = 9 / 16;
+    final banner = _AboutAdBanner(width: bannerWidth, aspectRatio: bannerAspectRatio);
+
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: isSmall ? 24 : 72,
+        vertical: 48,
+      ),
+      child: isSmall
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                aboutContent,
+                const SizedBox(height: 32),
+                Center(child: banner),
+              ],
+            )
+          : Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: aboutContent),
+                const SizedBox(width: 32),
+                banner,
+              ],
+            ),
+    );
+  }
+}
+
+/// 9:16 portrait ad banner: "Develop your custom product" / "Share your idea".
+class _AboutAdBanner extends StatelessWidget {
+  const _AboutAdBanner({required this.width, required this.aspectRatio});
+
+  final double width;
+  final double aspectRatio;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: width,
+      child: AspectRatio(
+        aspectRatio: aspectRatio,
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                PortfolioTheme.accentPrimary,
+                PortfolioTheme.accentSecondary,
+              ],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.12),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () {},
+              borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.lightbulb_outline_rounded,
+                      size: 40,
+                      color: Colors.white.withValues(alpha: 0.95),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Develop your\ncustom product',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            height: 1.25,
+                          ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Share your idea',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Colors.white.withValues(alpha: 0.9),
+                          ),
+                    ),
+                    const SizedBox(height: 16),
+                    FilledButton(
+                      onPressed: () {},
+                      style: FilledButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: PortfolioTheme.accentPrimary,
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      ),
+                      child: const Text('Get started'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
