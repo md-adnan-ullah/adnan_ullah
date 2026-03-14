@@ -35,6 +35,24 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
 
+  # Firebase (to be configured later)
+  firebase_core: ^3.8.1
+  firebase_auth: ^5.3.3
+  cloud_firestore: ^5.6.0
+  firebase_storage: ^12.3.6
+
+  # Animations & UX
+  flutter_animate: ^4.5.0
+  visibility_detector: ^0.4.0+2
+
+  # UI
+  google_fonts: ^6.2.1
+  url_launcher: ^6.3.0
+
+  # Use Flutter Gems responsive widgets (read-only dependency)
+  gems_responsive:
+    path: flutter_gems/packages/gems_responsive
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
