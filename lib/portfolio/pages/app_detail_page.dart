@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:gems_responsive/gems_responsive.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../config/seller_config.dart';
 import '../models/portfolio_app.dart';
 import '../utils/portfolio_theme.dart';
 import '../widgets/glass_card.dart';
-import '../services/portfolio_purchase_service.dart';
+import '../services/manual_purchase_service.dart';
 
 class AppDetailPage extends StatelessWidget {
   final PortfolioApp app;
@@ -211,7 +213,7 @@ class _ScreenshotsCard extends StatelessWidget {
             child: Image.network(
               urls[i],
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => _DummyScreenContent(
+              errorBuilder: (_, __, ___) => _DummyScreenContent( // ignore: unnecessary_underscores
                 screen: _dummyScreens[i % _dummyScreens.length],
               ),
             ),
@@ -462,76 +464,70 @@ class _VersionAndPrice extends StatelessWidget {
   }
 }
 
-/// Static bottom bar so user doesn't need to scroll to tap Buy.
-class _BuyBar extends StatelessWidget {
+/// Bottom bar: Buy with bKash (manual flow) or Download APK when verified.
+class _BuyBar extends StatefulWidget {
   final PortfolioApp app;
 
   const _BuyBar({required this.app});
 
+  @override
+  State<_BuyBar> createState() => _BuyBarState();
+}
+
+class _BuyBarState extends State<_BuyBar> {
+  final ManualPurchaseService _purchaseService = ManualPurchaseService();
+  bool _isUnlocked = false;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkUnlocked();
+  }
+
+  Future<void> _checkUnlocked() async {
+    final unlocked = await _purchaseService.isAppUnlocked(widget.app.id);
+    if (mounted) setState(() { _isUnlocked = unlocked; _loading = false; });
+  }
+
   Future<void> _onBuyPressed(BuildContext context) async {
-    showDialog(
+    await showDialog(
       context: context,
-      barrierDismissible: false,
-      builder: (ctx) => const Center(
-        child: Card(
-          child: Padding(
-            padding: EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CircularProgressIndicator(),
-                SizedBox(height: 16),
-                Text('Opening bKash...'),
-              ],
-            ),
-          ),
-        ),
+      builder: (ctx) => _ManualPayDialog(
+        app: widget.app,
+        onSubmitted: () => Navigator.of(ctx).pop(),
       ),
     );
+  }
 
-    final result = await PortfolioPurchaseService().pay(context: context, app: app);
+  Future<void> _onVerifyPressed(BuildContext context) async {
+    await showDialog(
+      context: context,
+      builder: (ctx) => _VerifyPurchaseDialog(
+        app: widget.app,
+        purchaseService: _purchaseService,
+        onVerified: () {
+          Navigator.of(ctx).pop();
+          _checkUnlocked();
+        },
+      ),
+    );
+  }
 
-    if (!context.mounted) return;
-    Navigator.of(context).pop();
-
-    if (result.success) {
-      await showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('Payment successful'),
-          content: Text('Transaction ID: ${result.trxId}'),
-          actions: [
-            FilledButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('OK')),
-          ],
-        ),
-      );
-    } else {
-      final err = result.errorMessage ?? 'Something went wrong. Try again or contact support.';
-      await showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('Payment failed'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SelectableText(err),
-              const SizedBox(height: 12),
-              SelectableText(
-                'Sandbox tip: run on Android or iOS; use bKash sandbox credentials.',
-                style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(ctx).colorScheme.outline,
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            FilledButton(
-              onPressed: () => Navigator.of(ctx).pop(),
-              child: const Text('OK'),
-            ),
-          ],
-        ),
+  Future<void> _onDownloadPressed(BuildContext context) async {
+    final url = widget.app.apkPath;
+    if (url != null && url.isNotEmpty) {
+      final uri = Uri.tryParse(url);
+      if (uri != null && await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Download link not configured for this app')),
+        );
+      }
+    } else if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Download link not set. Contact the developer.')),
       );
     }
   }
@@ -539,17 +535,25 @@ class _BuyBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isSmall = ResponsiveHelper.isSmallDevice(context);
+    final padding = EdgeInsets.fromLTRB(isSmall ? 20 : 72, 20, isSmall ? 20 : 72, 20);
+
+    if (_loading) {
+      return SafeArea(
+        top: false,
+        child: Container(
+          width: double.infinity,
+          padding: padding,
+          decoration: BoxDecoration(color: PortfolioTheme.surface.withValues(alpha: 0.95)),
+          child: const Center(child: SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))),
+        ),
+      );
+    }
 
     return SafeArea(
       top: false,
       child: Container(
         width: double.infinity,
-        padding: EdgeInsets.fromLTRB(
-          isSmall ? 20 : 72,
-          20,
-          isSmall ? 20 : 72,
-          20,
-        ),
+        padding: padding,
         decoration: BoxDecoration(
           color: PortfolioTheme.surface.withValues(alpha: 0.95),
           boxShadow: [
@@ -559,62 +563,279 @@ class _BuyBar extends StatelessWidget {
               offset: const Offset(0, -4),
             ),
           ],
-          border: Border(
-            top: BorderSide(color: PortfolioTheme.divider),
-          ),
+          border: Border(top: BorderSide(color: PortfolioTheme.divider)),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
+        child: _isUnlocked
+            ? Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Purchased', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: PortfolioTheme.accentPrimary, fontWeight: FontWeight.w700)),
+                        Text('Download the APK below', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: PortfolioTheme.textMuted)),
+                      ],
+                    ),
+                  ),
+                  FilledButton.icon(
+                    onPressed: () => _onDownloadPressed(context),
+                    icon: const Icon(Icons.download),
+                    label: const Text('Download APK'),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: PortfolioTheme.accentPrimary,
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    ),
+                  ),
+                ],
+              )
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Text(
-                        '৳${app.priceBdt}',
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                              color: PortfolioTheme.accentPrimary,
-                              fontWeight: FontWeight.w800,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '৳${widget.app.priceBdt}',
+                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                    color: PortfolioTheme.accentPrimary,
+                                    fontWeight: FontWeight.w800,
+                                  ),
                             ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Secure APK after payment',
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: PortfolioTheme.textMuted),
+                            ),
+                            const SizedBox(height: 4),
+                            TextButton(
+                              style: TextButton.styleFrom(padding: EdgeInsets.zero, minimumSize: Size.zero, tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+                              onPressed: () => _onVerifyPressed(context),
+                              child: Text('Already paid? Enter transaction ID', style: Theme.of(context).textTheme.bodySmall?.copyWith(color: PortfolioTheme.accentPrimary, decoration: TextDecoration.underline)),
+                            ),
+                          ],
+                        ),
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Secure APK after payment',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: PortfolioTheme.textMuted,
-                            ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        flex: 2,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: PortfolioTheme.bkash,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 18),
+                            elevation: 2,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          ),
+                          onPressed: () => _onBuyPressed(context),
+                          child: const Text('Buy with bKash'),
+                        ),
                       ),
                     ],
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  flex: 2,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: PortfolioTheme.bkash,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 18),
-                      elevation: 2,
-                      shadowColor: PortfolioTheme.bkash.withValues(alpha: 0.4),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                    ),
-                    onPressed: () => _onBuyPressed(context),
-                    child: const Text('Buy with bKash'),
-                  ),
-                ),
-              ],
+                ],
+              ),
+      ),
+    );
+  }
+}
+
+/// Dialog: show bKash number, user enters transaction ID and submits.
+class _ManualPayDialog extends StatefulWidget {
+  final PortfolioApp app;
+  final VoidCallback onSubmitted;
+
+  const _ManualPayDialog({required this.app, required this.onSubmitted});
+
+  @override
+  State<_ManualPayDialog> createState() => _ManualPayDialogState();
+}
+
+class _ManualPayDialogState extends State<_ManualPayDialog> {
+  final _trxController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _purchaseService = ManualPurchaseService();
+  bool _submitting = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _trxController.dispose();
+    _emailController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    final trx = _trxController.text.trim();
+    if (trx.isEmpty) {
+      setState(() => _error = 'Enter your bKash transaction ID');
+      return;
+    }
+    setState(() { _submitting = true; _error = null; });
+    try {
+      await _purchaseService.submitPending(
+        transactionId: trx,
+        app: widget.app,
+        email: _emailController.text.trim().isEmpty ? null : _emailController.text.trim(),
+      );
+      if (!mounted) return;
+      widget.onSubmitted();
+      Navigator.of(context).pop();
+      await showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Submitted'),
+          content: const Text(
+            "We'll verify your payment and unlock your download soon. "
+            "You can check status anytime using 'Already paid? Enter transaction ID' on this app.",
+          ),
+          actions: [FilledButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('OK'))],
+        ),
+      );
+    } catch (e) {
+      if (mounted) setState(() { _error = e.toString(); _submitting = false; });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Pay with bKash'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Upper: instruction + number
+            Text(SellerConfig.bkashInstructionTop, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
+            const SizedBox(height: 8),
+            SelectableText(SellerConfig.bkashNumber, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800, letterSpacing: 1.2)),
+            const SizedBox(height: 20),
+            const Divider(height: 1),
+            const SizedBox(height: 16),
+            // Below: amount (bold and prominent)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: PortfolioTheme.accentPrimary.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: PortfolioTheme.accentPrimary.withValues(alpha: 0.25)),
+              ),
+              child: Row(
+                children: [
+                  Text('Amount: ', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: PortfolioTheme.textSecondary, fontWeight: FontWeight.w600)),
+                  Text('৳${widget.app.priceBdt} BDT', style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: PortfolioTheme.accentPrimary, fontWeight: FontWeight.w800, letterSpacing: 0.5)),
+                ],
+              ),
             ),
+            const SizedBox(height: 12),
+            Text(SellerConfig.bkashInstructionBelow, style: Theme.of(context).textTheme.bodySmall),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _trxController,
+              decoration: const InputDecoration(labelText: 'Transaction ID', hintText: 'e.g. TRX123456'),
+              textCapitalization: TextCapitalization.none,
+              onChanged: (_) => setState(() => _error = null),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _emailController,
+              decoration: const InputDecoration(labelText: 'Email (optional)', hintText: 'For download link'),
+              keyboardType: TextInputType.emailAddress,
+            ),
+            if (_error != null) ...[const SizedBox(height: 12), Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error))],
           ],
         ),
       ),
+      actions: [
+        TextButton(onPressed: _submitting ? null : () => Navigator.of(context).pop(), child: const Text('Cancel')),
+        FilledButton(onPressed: _submitting ? null : _submit, child: _submitting ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Submit')),
+      ],
+    );
+  }
+}
+
+/// Dialog: user enters transaction ID to check status; if verified, unlock and show download.
+class _VerifyPurchaseDialog extends StatefulWidget {
+  final PortfolioApp app;
+  final ManualPurchaseService purchaseService;
+  final VoidCallback onVerified;
+
+  const _VerifyPurchaseDialog({required this.app, required this.purchaseService, required this.onVerified});
+
+  @override
+  State<_VerifyPurchaseDialog> createState() => _VerifyPurchaseDialogState();
+}
+
+class _VerifyPurchaseDialogState extends State<_VerifyPurchaseDialog> {
+  final _trxController = TextEditingController();
+  bool _checking = false;
+  String? _message;
+  bool _verified = false;
+
+  @override
+  void dispose() {
+    _trxController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _check() async {
+    final trx = _trxController.text.trim();
+    if (trx.isEmpty) {
+      setState(() => _message = 'Enter transaction ID');
+      return;
+    }
+    setState(() { _checking = true; _message = null; _verified = false; });
+    try {
+      final status = await widget.purchaseService.checkStatus(transactionId: trx, appId: widget.app.id);
+      if (!mounted) return;
+      if (status == 'verified') {
+        await widget.purchaseService.saveVerifiedLocally(appId: widget.app.id, transactionId: trx);
+        setState(() { _message = null; _verified = true; _checking = false; });
+        widget.onVerified();
+      } else if (status == 'pending') {
+        setState(() { _message = "We're still verifying your payment. Try again later."; _checking = false; });
+      } else {
+        setState(() { _message = 'Transaction ID not found or not for this app.'; _checking = false; });
+      }
+    } catch (e) {
+      if (mounted) setState(() { _message = e.toString(); _checking = false; });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Already paid?'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Enter your bKash transaction ID to check status and unlock download.'),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _trxController,
+              decoration: const InputDecoration(labelText: 'Transaction ID'),
+              textCapitalization: TextCapitalization.none,
+              onChanged: (_) => setState(() => _message = null),
+            ),
+            if (_message != null) ...[const SizedBox(height: 12), Text(_message!, style: TextStyle(color: _verified ? Colors.green : Theme.of(context).colorScheme.error))],
+            if (_verified) ...[const SizedBox(height: 12), const Text('Verified! You can download the APK from the bar below.', style: TextStyle(color: Colors.green, fontWeight: FontWeight.w500))],
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Close')),
+        if (!_verified) FilledButton(onPressed: _checking ? null : _check, child: _checking ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Check status')),
+      ],
     );
   }
 }

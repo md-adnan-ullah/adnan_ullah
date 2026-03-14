@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "732812453376",
+    "project_id": "adnan-ullah-portfolio",
+    "storage_bucket": "adnan-ullah-portfolio.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:732812453376:android:d60c16189183f295a0dae5",
+        "android_client_info": {
+          "package_name": "net.envenigma.adnan_ullah"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCuJ79af052kZfNER9xM4yV_zKzdwd05l8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
