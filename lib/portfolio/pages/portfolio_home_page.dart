@@ -121,62 +121,119 @@ class _PortfolioHomePageState extends State<PortfolioHomePage> {
           ),
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  if (!isSmall)
-                    Row(
-                      children: [
-                        _NavLink(label: 'Work', onTap: () => _scrollTo(900)),
-                        _NavLink(
-                          label: 'Portfolio',
-                          onTap: () => _scrollTo(1400),
+              padding: EdgeInsets.symmetric(
+                horizontal: isSmall ? 16 : 32,
+                vertical: 12,
+              ),
+              child: Align(
+                alignment: Alignment.topCenter,
+                child: Container(
+                  constraints: const BoxConstraints(maxWidth: 900),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(24),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 14,
                         ),
-                        _NavLink(
-                          label: 'Pricing',
-                          onTap: () => _scrollTo(600),
-                        ),
-                      ],
-                    )
-                  else
-                    const SizedBox.shrink(),
-                  GestureDetector(
-                    onTap: () => _scrollTo(0),
-                    child: Text(
-                      'ADNAN ULLAH',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: PortfolioTheme.textPrimary,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 1.2,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              PortfolioTheme.surface.withOpacity(0.85),
+                              PortfolioTheme.card.withOpacity(0.82),
+                              PortfolioTheme.accentPrimary.withOpacity(0.08),
+                            ],
+                            stops: const [0.0, 0.6, 1.0],
                           ),
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.5),
+                            width: 1,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.06),
+                              blurRadius: 24,
+                              offset: const Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            if (!isSmall)
+                              Row(
+                                children: [
+                                  _NavLink(
+                                      label: 'Work',
+                                      onTap: () => _scrollTo(900)),
+                                  _NavLink(
+                                    label: 'Portfolio',
+                                    onTap: () => _scrollTo(1400),
+                                  ),
+                                  _NavLink(
+                                    label: 'Pricing',
+                                    onTap: () => _scrollTo(600),
+                                  ),
+                                ],
+                              )
+                            else
+                              const SizedBox.shrink(),
+                            GestureDetector(
+                              onTap: () => _scrollTo(0),
+                              child: Text(
+                                'ADNAN ULLAH',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(
+                                      color: PortfolioTheme.textPrimary,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 1.2,
+                                    ),
+                              ),
+                            ),
+                            if (!isSmall)
+                              Row(
+                                children: [
+                                  _NavLink(
+                                    label: 'Contact',
+                                    onTap: () => _scrollTo(2200),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'MENU',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelMedium
+                                        ?.copyWith(
+                                          color:
+                                              PortfolioTheme.textPrimary,
+                                        ),
+                                  ),
+                                ],
+                              )
+                            else
+                              Text(
+                                'MENU',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelMedium
+                                    ?.copyWith(
+                                      color: PortfolioTheme.textPrimary,
+                                    ),
+                              ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
-                  if (!isSmall)
-                    Row(
-                      children: [
-                        _NavLink(
-                          label: 'Contact',
-                          onTap: () => _scrollTo(2200),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'MENU',
-                          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                                color: PortfolioTheme.textPrimary,
-                              ),
-                        ),
-                      ],
-                    )
-                  else
-                    Text(
-                      'MENU',
-                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                            color: PortfolioTheme.textPrimary,
-                          ),
-                    ),
-                ],
+                ),
               ),
             ),
           ),
@@ -202,21 +259,33 @@ class _NavLinkState extends State<_NavLink> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(left: 24),
+      padding: const EdgeInsets.only(left: 20),
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
         onEnter: (_) => setState(() => _hovered = true),
         onExit: (_) => setState(() => _hovered = false),
         child: GestureDetector(
           onTap: widget.onTap,
-          child: Text(
-          widget.label,
-          style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                color: _hovered
-                    ? PortfolioTheme.accentPrimary
-                    : PortfolioTheme.textPrimary,
-              ),
-        ),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOutCubic,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              color: _hovered
+                  ? PortfolioTheme.accentPrimary.withOpacity(0.12)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              widget.label,
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    color: _hovered
+                        ? PortfolioTheme.accentPrimary
+                        : PortfolioTheme.textPrimary,
+                    fontWeight: _hovered ? FontWeight.w600 : FontWeight.w500,
+                  ),
+            ),
+          ),
         ),
       ),
     );
@@ -249,8 +318,8 @@ class _HeroSection extends StatelessWidget {
               BlendMode.darken,
             ),
             child: Image.network(
-              'https://images.unsplash.com/photo-1553877522-43269d4ea984'
-              '?auto=format&fit=crop&w=1600&q=80',
+              'https://images.unsplash.com/photo-1600610429853-81d08d9ae4b1'
+              '?auto=format&fit=crop&w=1600&q=85',
               fit: BoxFit.cover,
             ),
           ),
@@ -267,27 +336,35 @@ class _HeroSection extends StatelessWidget {
               ),
             ),
           ),
-          // Glassy content card
+          // Glassy transparent content card — banner shows through
           Center(
             child: Padding(
               padding: EdgeInsets.symmetric(
                 horizontal: isSmall ? 24 : 72,
               ),
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(18),
+                borderRadius: BorderRadius.circular(20),
                 child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                  filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
                   child: Container(
                     constraints: const BoxConstraints(maxWidth: 900),
                     padding: EdgeInsets.symmetric(
-                      horizontal: isSmall ? 20 : 32,
-                      vertical: isSmall ? 20 : 28,
+                      horizontal: isSmall ? 20 : 36,
+                      vertical: isSmall ? 22 : 32,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.72),
-                      borderRadius: BorderRadius.circular(18),
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Colors.white.withOpacity(0.22),
+                          Colors.white.withOpacity(0.12),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: Colors.white.withOpacity(0.65),
+                        color: Colors.white.withOpacity(0.4),
+                        width: 1.5,
                       ),
                     ),
                     child: Column(
@@ -300,23 +377,45 @@ class _HeroSection extends StatelessWidget {
                               .textTheme
                               .labelMedium
                               ?.copyWith(
-                                color: PortfolioTheme.textSecondary,
-                                letterSpacing: 1.3,
+                                color: Colors.white,
+                                letterSpacing: 1.4,
+                                fontWeight: FontWeight.w600,
+                                shadows: [
+                                  Shadow(
+                                    color: Colors.black.withOpacity(0.4),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 1),
+                                  ),
+                                ],
                               ),
                         )
                             .animate()
                             .fadeIn(duration: 350.ms)
                             .moveX(begin: -16, end: 0),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 12),
                         Text(
                           'NEW TRANSFORMING APP EXPERIENCES',
                           style: Theme.of(context)
                               .textTheme
                               .headlineMedium
                               ?.copyWith(
-                                color: PortfolioTheme.accentPrimary,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 0.6,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: 0.8,
+                                fontSize: 28,
+                                shadows: [
+                                  Shadow(
+                                    color: Colors.black.withOpacity(0.5),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                  Shadow(
+                                    color: PortfolioTheme.accentPrimary
+                                        .withOpacity(0.4),
+                                    blurRadius: 20,
+                                    offset: Offset.zero,
+                                  ),
+                                ],
                               ),
                         )
                             .animate()
@@ -330,14 +429,21 @@ class _HeroSection extends StatelessWidget {
                               .textTheme
                               .bodyLarge
                               ?.copyWith(
-                                color: PortfolioTheme.textSecondary,
+                                color: Colors.white,
                                 height: 1.6,
+                                shadows: [
+                                  Shadow(
+                                    color: Colors.black.withOpacity(0.45),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 1),
+                                  ),
+                                ],
                               ),
                         )
                             .animate()
                             .fadeIn(delay: 220.ms, duration: 450.ms)
                             .moveY(begin: 12, end: 0),
-                        const SizedBox(height: 22),
+                        const SizedBox(height: 24),
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -349,11 +455,18 @@ class _HeroSection extends StatelessWidget {
                                     .textTheme
                                     .labelLarge
                                     ?.copyWith(
-                                      color: PortfolioTheme.textPrimary,
-                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w700,
                                       decoration: TextDecoration.underline,
-                                      decorationColor:
-                                          PortfolioTheme.textPrimary,
+                                      decorationColor: Colors.white,
+                                      shadows: [
+                                        Shadow(
+                                          color: Colors.black
+                                              .withOpacity(0.4),
+                                          blurRadius: 6,
+                                          offset: const Offset(0, 1),
+                                        ),
+                                      ],
                                     ),
                               ),
                             )
@@ -364,6 +477,12 @@ class _HeroSection extends StatelessWidget {
                             const SizedBox(width: 24),
                             ElevatedButton(
                               onPressed: onContact,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: PortfolioTheme.accentPrimary,
+                                foregroundColor: Colors.white,
+                                elevation: 4,
+                                shadowColor: Colors.black.withOpacity(0.35),
+                              ),
                               child: const Text('START YOUR PROJECT'),
                             )
                                 .animate()

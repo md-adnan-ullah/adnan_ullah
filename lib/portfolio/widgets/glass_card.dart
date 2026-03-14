@@ -42,19 +42,19 @@ class _GlassCardState extends State<GlassCard> {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Colors.white.withOpacity(0.86),
-            PortfolioTheme.surface.withOpacity(0.95),
+            Colors.white.withOpacity(0.28),
+            Colors.white.withOpacity(0.14),
           ],
         ),
         borderRadius: radius,
         border: Border.all(
-          color: Colors.white.withOpacity(0.7),
-          width: 1,
+          color: Colors.white.withOpacity(0.45),
+          width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: _hovered ? 0.11 : 0.06),
-            blurRadius: _hovered ? 26 : 18,
+            color: Colors.black.withValues(alpha: _hovered ? 0.12 : 0.06),
+            blurRadius: _hovered ? 28 : 20,
             offset: Offset(0, _hovered ? 10 : 6),
           ),
         ],
@@ -65,7 +65,7 @@ class _GlassCardState extends State<GlassCard> {
     final glass = ClipRRect(
       borderRadius: radius,
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+        filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
         child: surface,
       ),
     );
