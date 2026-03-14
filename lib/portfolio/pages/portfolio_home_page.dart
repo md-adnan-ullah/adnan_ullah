@@ -305,44 +305,68 @@ class _HeroSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final isSmall = ResponsiveHelper.isSmallDevice(context);
     final bannerHeight = isSmall ? 340.0 : 420.0;
+    // Half of the card height: 50% inside banner, 50% below
+    final halfCardHeight = isSmall ? 110.0 : 140.0;
+    final totalHeroHeight = bannerHeight + halfCardHeight;
 
     return SizedBox(
-      height: bannerHeight,
+      height: totalHeroHeight,
       child: Stack(
-        fit: StackFit.expand,
+        clipBehavior: Clip.none,
         children: [
-          // Background image banner (portfolio / workspace feel)
-          ColorFiltered(
-            colorFilter: ColorFilter.mode(
-              Colors.black.withOpacity(0.25),
-              BlendMode.darken,
-            ),
-            child: Image.network(
-              'https://images.unsplash.com/photo-1600610429853-81d08d9ae4b1'
-              '?auto=format&fit=crop&w=1600&q=85',
-              fit: BoxFit.cover,
-            ),
-          ),
-          // Subtle gradient overlay to match warm theme
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  PortfolioTheme.background.withOpacity(0.2),
-                  PortfolioTheme.background.withOpacity(0.5),
-                ],
+          // Background image banner (top portion only)
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: bannerHeight,
+            child: ColorFiltered(
+              colorFilter: ColorFilter.mode(
+                Colors.black.withOpacity(0.25),
+                BlendMode.darken,
+              ),
+              child: Image.network(
+                'https://images.unsplash.com/photo-Wyc7vHXfCDQ'
+                '?auto=format&fit=crop&w=1600&q=85',
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Image.network(
+                  'https://images.unsplash.com/photo-1600610429853-81d08d9ae4b1'
+                  '?auto=format&fit=crop&w=1600&q=85',
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
           ),
-          // Glassy transparent content card — banner shows through
-          Center(
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: isSmall ? 24 : 72,
+          // Subtle gradient overlay
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: bannerHeight,
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    PortfolioTheme.background.withOpacity(0.2),
+                    PortfolioTheme.background.withOpacity(0.5),
+                  ],
+                ),
               ),
-              child: ClipRRect(
+            ),
+          ),
+          // Card: 50% inside banner, 50% below (positioned at bottom of banner)
+          Positioned(
+            top: bannerHeight - halfCardHeight,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: isSmall ? 24 : 72,
+                ),
+                child: ClipRRect(
                 borderRadius: BorderRadius.circular(20),
                 child: BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
@@ -501,6 +525,7 @@ class _HeroSection extends StatelessWidget {
               ),
             ),
           ),
+        ),
         ],
       ),
     );
