@@ -14,10 +14,12 @@ class ManualPurchaseService {
   final FirebaseFirestore _firestore;
 
   /// Submit a pending purchase (user entered transaction ID after paying).
+  /// [paymentMethod] is 'bkash' or 'bank'.
   Future<void> submitPending({
     required String transactionId,
     required PortfolioApp app,
     String? email,
+    String paymentMethod = 'bkash',
   }) async {
     await _firestore.collection(_collection).doc(transactionId).set({
       'transactionId': transactionId,
@@ -25,6 +27,7 @@ class ManualPurchaseService {
       'appName': app.title,
       'amountBdt': app.priceBdt,
       'status': 'pending',
+      'paymentMethod': paymentMethod,
       'email': email,
       'createdAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));

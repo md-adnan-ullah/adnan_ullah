@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:gems_responsive/gems_responsive.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -464,7 +465,7 @@ class _VersionAndPrice extends StatelessWidget {
   }
 }
 
-/// Bottom bar: Buy with bKash (manual flow) or Download APK when verified.
+/// Bottom bar: Buy now (bKash/Bank) or Download APK when verified.
 class _BuyBar extends StatefulWidget {
   final PortfolioApp app;
 
@@ -635,7 +636,7 @@ class _BuyBarState extends State<_BuyBar> {
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                           ),
                           onPressed: () => _onBuyPressed(context),
-                          child: const Text('Buy with bKash'),
+                          child: const Text('Buy now'),
                         ),
                       ),
                     ],
@@ -664,6 +665,7 @@ class _ManualPayDialogState extends State<_ManualPayDialog> {
   final _purchaseService = ManualPurchaseService();
   bool _submitting = false;
   String? _error;
+  bool _isBank = false; // false = bKash, true = Bank
 
   @override
   void dispose() {
@@ -672,10 +674,55 @@ class _ManualPayDialogState extends State<_ManualPayDialog> {
     super.dispose();
   }
 
+  Widget _bankRow(BuildContext context, String label, String value, {bool copyable = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 118,
+            child: Text(
+              '$label:',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: PortfolioTheme.textMuted,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          Expanded(
+            child: SelectableText(
+              value,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: PortfolioTheme.textPrimary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          if (copyable)
+            IconButton(
+              padding: const EdgeInsets.all(8),
+              constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+              style: IconButton.styleFrom(
+                backgroundColor: PortfolioTheme.accentPrimary.withValues(alpha: 0.12),
+                foregroundColor: PortfolioTheme.accentPrimary,
+              ),
+              icon: const Icon(Icons.copy_rounded, size: 18),
+              onPressed: () {
+                Clipboard.setData(ClipboardData(text: value));
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Account number copied'), duration: Duration(seconds: 1)));
+              },
+              tooltip: 'Copy account number',
+            ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _submit() async {
     final trx = _trxController.text.trim();
     if (trx.isEmpty) {
-      setState(() => _error = 'Enter your bKash transaction ID');
+      setState(() => _error = 'Enter your transaction ID');
       return;
     }
     setState(() { _submitting = true; _error = null; });
@@ -684,6 +731,7 @@ class _ManualPayDialogState extends State<_ManualPayDialog> {
         transactionId: trx,
         app: widget.app,
         email: _emailController.text.trim().isEmpty ? null : _emailController.text.trim(),
+        paymentMethod: _isBank ? 'bank' : 'bkash',
       );
       if (!mounted) return;
       widget.onSubmitted();
@@ -707,20 +755,100 @@ class _ManualPayDialogState extends State<_ManualPayDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Pay with bKash'),
+      title: const Text('Pay with bKash or Bank'),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Upper: instruction + number
-            Text(SellerConfig.bkashInstructionTop, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
-            const SizedBox(height: 8),
-            SelectableText(SellerConfig.bkashNumber, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800, letterSpacing: 1.2)),
+            // Option: bKash or Bank
+            Row(
+              children: [
+                Expanded(
+                  child: SegmentedButton<bool>(
+                    segments: const [
+                      ButtonSegment(value: false, label: Text('bKash'), icon: Icon(Icons.phone_android)),
+                      ButtonSegment(value: true, label: Text('Bank'), icon: Icon(Icons.account_balance)),
+                    ],
+                    selected: {_isBank},
+                    onSelectionChanged: (Set<bool> s) => setState(() => _isBank = s.first),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            // Upper: instruction + bKash number OR bank details
+            if (!_isBank) ...[
+              Text(SellerConfig.bkashInstructionTop, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: SelectableText(SellerConfig.bkashNumber, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800, letterSpacing: 1.2)),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.copy),
+                    onPressed: () {
+                      Clipboard.setData(const ClipboardData(text: SellerConfig.bkashNumber));
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Number copied'), duration: Duration(seconds: 1)));
+                    },
+                    tooltip: 'Copy number',
+                  ),
+                ],
+              ),
+            ] else ...[
+              Text(SellerConfig.bankInstructionTop, style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600)),
+              const SizedBox(height: 14),
+              Container(
+                padding: const EdgeInsets.fromLTRB(20, 16, 12, 16),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      PortfolioTheme.accentPrimary.withValues(alpha: 0.06),
+                      PortfolioTheme.accentPrimary.withValues(alpha: 0.03),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: PortfolioTheme.accentPrimary.withValues(alpha: 0.25), width: 1.2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: PortfolioTheme.accentPrimary.withValues(alpha: 0.06),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.account_balance_rounded, size: 20, color: PortfolioTheme.accentPrimary),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Bank account',
+                          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            color: PortfolioTheme.accentPrimary,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    _bankRow(context, 'Bank', SellerConfig.bankName),
+                    _bankRow(context, 'Account name', SellerConfig.accountName),
+                    _bankRow(context, 'Account number', SellerConfig.accountNumber, copyable: true),
+                    _bankRow(context, 'Branch', SellerConfig.branchName),
+                  ],
+                ),
+              ),
+            ],
             const SizedBox(height: 20),
             const Divider(height: 1),
             const SizedBox(height: 16),
-            // Below: amount (bold and prominent)
+            // Amount (bold and prominent)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
@@ -736,7 +864,7 @@ class _ManualPayDialogState extends State<_ManualPayDialog> {
               ),
             ),
             const SizedBox(height: 12),
-            Text(SellerConfig.bkashInstructionBelow, style: Theme.of(context).textTheme.bodySmall),
+            Text(_isBank ? SellerConfig.bankInstructionBelow : SellerConfig.bkashInstructionBelow, style: Theme.of(context).textTheme.bodySmall),
             const SizedBox(height: 16),
             TextField(
               controller: _trxController,
