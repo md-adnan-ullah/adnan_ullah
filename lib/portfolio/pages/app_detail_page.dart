@@ -22,7 +22,17 @@ class AppDetailPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: PortfolioTheme.background,
       appBar: AppBar(
-        title: const Text('App details'),
+        title: Text(
+          app.name,
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                color: PortfolioTheme.textPrimary,
+                fontWeight: FontWeight.w700,
+              ),
+        ),
+        backgroundColor: PortfolioTheme.background,
+        elevation: 0,
+        scrolledUnderElevation: 2,
+        iconTheme: const IconThemeData(color: PortfolioTheme.textPrimary),
       ),
       body: Column(
         children: [
@@ -65,70 +75,63 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          width: 80,
-          height: 80,
-          decoration: BoxDecoration(
-            color: PortfolioTheme.accentPrimary.withValues(alpha: 0.14),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: const Icon(
-            Icons.apps_rounded,
-            color: PortfolioTheme.accentPrimary,
-            size: 40,
-          ),
-        ),
-        const SizedBox(width: 24),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                app.name,
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      color: PortfolioTheme.textPrimary,
-                      fontWeight: FontWeight.w700,
-                    ),
+    return GlassCard(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 88,
+            height: 88,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  PortfolioTheme.accentPrimary.withValues(alpha: 0.2),
+                  PortfolioTheme.accentSecondary.withValues(alpha: 0.15),
+                ],
               ),
-              const SizedBox(height: 8),
-              Text(
-                app.shortDescription,
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: PortfolioTheme.textSecondary,
-                    ),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 6,
-                children: app.technologies
-                    .map(
-                      (t) => Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: PortfolioTheme.surface,
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Text(
-                          t,
-                          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                color: PortfolioTheme.textSecondary,
-                              ),
-                        ),
+              borderRadius: BorderRadius.circular(22),
+              boxShadow: [
+                BoxShadow(
+                  color: PortfolioTheme.accentPrimary.withValues(alpha: 0.2),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.apps_rounded,
+              color: PortfolioTheme.accentPrimary,
+              size: 44,
+            ),
+          ),
+          const SizedBox(width: 24),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  app.platform,
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: PortfolioTheme.accentPrimary,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.5,
                       ),
-                    )
-                    .toList(),
-              ),
-            ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  app.shortDescription,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: PortfolioTheme.textSecondary,
+                        height: 1.5,
+                      ),
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -153,18 +156,32 @@ class _ScreenshotsCard extends StatelessWidget {
         : null; // use dummies when null
 
     return GlassCard(
-      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+      padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'App preview',
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: PortfolioTheme.textPrimary,
-                  fontWeight: FontWeight.w700,
+          Row(
+            children: [
+              Container(
+                width: 4,
+                height: 24,
+                decoration: BoxDecoration(
+                  color: PortfolioTheme.accentPrimary,
+                  borderRadius: BorderRadius.circular(2),
                 ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                'APP PREVIEW',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: PortfolioTheme.textPrimary,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.2,
+                    ),
+              ),
+            ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
           SizedBox(
             height: 380,
             child: SingleChildScrollView(
@@ -266,18 +283,23 @@ class _PhoneFrame extends StatelessWidget {
         height: 360,
         decoration: BoxDecoration(
           color: Colors.black,
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: BorderRadius.circular(32),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.25),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
+              color: Colors.black.withValues(alpha: 0.3),
+              blurRadius: 24,
+              offset: const Offset(0, 12),
+            ),
+            BoxShadow(
+              color: PortfolioTheme.accentPrimary.withValues(alpha: 0.08),
+              blurRadius: 32,
+              offset: const Offset(0, 8),
             ),
           ],
         ),
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(14),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(22),
           child: child,
         ),
       ),
@@ -296,19 +318,25 @@ class _DescriptionCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'About this app',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: PortfolioTheme.textPrimary,
-                  fontWeight: FontWeight.w600,
-                ),
+          Row(
+            children: [
+              Icon(Icons.description_outlined, size: 22, color: PortfolioTheme.accentPrimary),
+              const SizedBox(width: 10),
+              Text(
+                'About this app',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: PortfolioTheme.textPrimary,
+                      fontWeight: FontWeight.w700,
+                    ),
+              ),
+            ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           Text(
             app.longDescription,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: PortfolioTheme.textSecondary,
-                  height: 1.6,
+                  height: 1.65,
                 ),
           ),
         ],
@@ -330,37 +358,58 @@ class _FeaturesCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'Features',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: PortfolioTheme.textPrimary,
-                  fontWeight: FontWeight.w600,
-                ),
-          ),
-          const SizedBox(height: 16),
-          ...app.features.map(
-            (f) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Icon(
-                    Icons.check_circle_outline,
-                    color: PortfolioTheme.accentPrimary,
-                    size: 18,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      f,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: PortfolioTheme.textSecondary,
-                          ),
+          Row(
+            children: [
+              Icon(Icons.check_circle_outline, size: 22, color: PortfolioTheme.accentPrimary),
+              const SizedBox(width: 10),
+              Text(
+                'Features',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: PortfolioTheme.textPrimary,
+                      fontWeight: FontWeight.w700,
                     ),
-                  ),
-                ],
               ),
-            ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          ...app.features.asMap().entries.map(
+            (e) {
+              final index = e.key;
+              final f = e.value;
+              return Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                decoration: BoxDecoration(
+                  color: index.isEven
+                      ? PortfolioTheme.accentPrimary.withValues(alpha: 0.06)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                  border: index.isOdd
+                      ? Border.all(color: PortfolioTheme.border.withValues(alpha: 0.8))
+                      : null,
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.check_rounded,
+                      color: PortfolioTheme.accentPrimary,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        f,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: PortfolioTheme.textSecondary,
+                              height: 1.4,
+                            ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -375,23 +424,40 @@ class _VersionAndPrice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          'Version ${app.version}',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: PortfolioTheme.textMuted,
+    return GlassCard(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.info_outline_rounded, size: 18, color: PortfolioTheme.textMuted),
+              const SizedBox(width: 8),
+              Text(
+                'Version ${app.version}',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: PortfolioTheme.textMuted,
+                    ),
               ),
-        ),
-        Text(
-          '৳${app.priceBdt}',
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                color: PortfolioTheme.accentPrimary,
-                fontWeight: FontWeight.w700,
-              ),
-        ),
-      ],
+            ],
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: PortfolioTheme.accentPrimary.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: PortfolioTheme.accentPrimary.withValues(alpha: 0.35)),
+            ),
+            child: Text(
+              '৳${app.priceBdt}',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    color: PortfolioTheme.accentPrimary,
+                    fontWeight: FontWeight.w800,
+                  ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -412,12 +478,19 @@ class _BuyBar extends StatelessWidget {
         width: double.infinity,
         padding: EdgeInsets.fromLTRB(
           isSmall ? 20 : 72,
-          16,
+          20,
           isSmall ? 20 : 72,
-          16,
+          20,
         ),
         decoration: BoxDecoration(
-          color: PortfolioTheme.background,
+          color: PortfolioTheme.surface.withValues(alpha: 0.95),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.06),
+              blurRadius: 20,
+              offset: const Offset(0, -4),
+            ),
+          ],
           border: Border(
             top: BorderSide(color: PortfolioTheme.divider),
           ),
@@ -426,39 +499,67 @@ class _BuyBar extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: PortfolioTheme.bkash,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-              onPressed: () async {
-                final service = PortfolioPurchaseService();
-                final result = await service.initiateBkashPayment(
-                  app: app,
-                  customerEmail: 'customer@example.com',
-                  customerPhone: '+8801XXXXXXXXX',
-                );
-                if (!context.mounted) return;
-                if (result == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'bKash integration coming soon. Please contact me to purchase this app.',
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '৳${app.priceBdt}',
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                              color: PortfolioTheme.accentPrimary,
+                              fontWeight: FontWeight.w800,
+                            ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Secure APK after payment',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: PortfolioTheme.textMuted,
+                            ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  flex: 2,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: PortfolioTheme.bkash,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 18),
+                      elevation: 2,
+                      shadowColor: PortfolioTheme.bkash.withValues(alpha: 0.4),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
                       ),
                     ),
-                  );
-                }
-              },
-              child: const Text('Buy with bKash'),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'After payment you will receive a secure APK download link.',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: PortfolioTheme.textMuted,
+                    onPressed: () async {
+                      final service = PortfolioPurchaseService();
+                      final result = await service.initiateBkashPayment(
+                        app: app,
+                        customerEmail: 'customer@example.com',
+                        customerPhone: '+8801XXXXXXXXX',
+                      );
+                      if (!context.mounted) return;
+                      if (result == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'bKash integration coming soon. Please contact me to purchase this app.',
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                    child: const Text('Buy with bKash'),
                   ),
+                ),
+              ],
             ),
           ],
         ),
