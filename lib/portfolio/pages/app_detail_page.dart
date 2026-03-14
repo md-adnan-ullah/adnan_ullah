@@ -166,14 +166,11 @@ class _ScreenshotsCarousel extends StatelessWidget {
       },
     ).toList();
 
-    return ResponsiveCarousel(
+    return SizedBox(
       height: 320,
-      autoPlay: items.length > 1,
-      showArrows: true,
-      showIndicators: true,
-      indicatorColor: PortfolioTheme.textMuted,
-      activeIndicatorColor: PortfolioTheme.accentPrimary,
-      children: items,
+      child: PageView(
+        children: items,
+      ),
     );
   }
 }
