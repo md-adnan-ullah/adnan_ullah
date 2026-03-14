@@ -725,21 +725,28 @@ class _AppCard extends StatelessWidget {
                         color: PortfolioTheme.textSecondary,
                       ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 14),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      '৳${app.priceBdt}',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: PortfolioTheme.accentPrimary,
-                            fontWeight: FontWeight.w600,
-                          ),
+                    Chip(
+                      label: Text(
+                        '৳${app.priceBdt}',
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                            ),
+                      ),
+                      backgroundColor: PortfolioTheme.accentPrimary,
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      visualDensity: VisualDensity.compact,
                     ),
                     Text(
-                      'View',
+                      'View →',
                       style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                            color: PortfolioTheme.textSecondary,
+                            color: PortfolioTheme.accentPrimary,
+                            fontWeight: FontWeight.w600,
                           ),
                     ),
                   ],
@@ -881,26 +888,25 @@ class _PortfolioSection extends StatelessWidget {
         ),
         const SizedBox(height: 10),
         Wrap(
-          spacing: 8,
+          spacing: 6,
           runSpacing: 6,
           children: p.technologies
               .map(
-                (t) => Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: PortfolioTheme.surface,
-                    borderRadius: BorderRadius.circular(4),
-                    border: Border.all(color: PortfolioTheme.border),
-                  ),
-                  child: Text(
+                (t) => Chip(
+                  label: Text(
                     t,
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: PortfolioTheme.textSecondary,
+                          color: PortfolioTheme.accentPrimary,
+                          fontWeight: FontWeight.w600,
                         ),
                   ),
+                  backgroundColor: PortfolioTheme.accentPrimary.withValues(alpha: 0.12),
+                  side: BorderSide(
+                    color: PortfolioTheme.accentPrimary.withValues(alpha: 0.3),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  visualDensity: VisualDensity.compact,
                 ),
               )
               .toList(),
@@ -1017,34 +1023,44 @@ class _GithubRepoCard extends StatelessWidget {
                 ),
           ),
           const Spacer(),
-          Row(
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
             children: [
-              if (repo.language.isNotEmpty) ...[
-                Icon(
-                  Icons.circle,
-                  size: 8,
-                  color: PortfolioTheme.accentPrimary,
+              if (repo.language.isNotEmpty)
+                Chip(
+                  avatar: Icon(
+                    Icons.circle,
+                    size: 8,
+                    color: PortfolioTheme.accentPrimary,
+                  ),
+                  label: Text(
+                    repo.language,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: PortfolioTheme.textPrimary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                  backgroundColor: PortfolioTheme.surface,
+                  side: BorderSide(color: PortfolioTheme.border),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  visualDensity: VisualDensity.compact,
                 ),
-                const SizedBox(width: 6),
-                Text(
-                  repo.language,
+              Chip(
+                avatar: const Icon(Icons.star_border, size: 14, color: PortfolioTheme.accentPrimary),
+                label: Text(
+                  repo.stargazersCount.toString(),
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: PortfolioTheme.textSecondary,
+                        color: PortfolioTheme.textPrimary,
+                        fontWeight: FontWeight.w600,
                       ),
                 ),
-              ],
-              const SizedBox(width: 16),
-              const Icon(
-                Icons.star_border,
-                size: 14,
-                color: PortfolioTheme.textMuted,
-              ),
-              const SizedBox(width: 4),
-              Text(
-                repo.stargazersCount.toString(),
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: PortfolioTheme.textSecondary,
-                    ),
+                backgroundColor: PortfolioTheme.surface,
+                side: BorderSide(color: PortfolioTheme.border),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                visualDensity: VisualDensity.compact,
               ),
             ],
           ),
