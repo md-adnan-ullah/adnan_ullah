@@ -67,6 +67,7 @@ class _PortfolioHomePageState extends State<PortfolioHomePage> {
           ListView(
             controller: _scrollController,
             padding: EdgeInsets.zero,
+            physics: const ClampingScrollPhysics(),
             children: [
               _HeroSection(
                 onViewApps: () => _scrollTo(600),
@@ -111,12 +112,13 @@ class _PortfolioHomePageState extends State<PortfolioHomePage> {
               AnimatedSection(
                 child: const _ContactSection(),
               ),
-              _Footer(
-                onNavigateToApps: () => _scrollTo(900),
-                onNavigateToPortfolio: () => _scrollTo(1400),
-                onNavigateToPricing: () => _scrollTo(600),
-                onNavigateToContact: () => _scrollTo(2200),
-                onAdminTap: () async {
+              RepaintBoundary(
+                child: _Footer(
+                  onNavigateToApps: () => _scrollTo(900),
+                  onNavigateToPortfolio: () => _scrollTo(1400),
+                  onNavigateToPricing: () => _scrollTo(600),
+                  onNavigateToContact: () => _scrollTo(2200),
+                  onAdminTap: () async {
                   final ok = await PurchaseAdminPage.checkCredentials(context);
                   if (ok && context.mounted) {
                     Navigator.of(context).push(
@@ -130,6 +132,7 @@ class _PortfolioHomePageState extends State<PortfolioHomePage> {
                     );
                   }
                 },
+                ),
               ),
               SizedBox(height: isSmall ? 32 : 48),
             ],
@@ -947,32 +950,37 @@ class _PortfolioSection extends StatelessWidget {
                                 ),
                               ],
                             )
-                          : Row(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                ClipRRect(
-                                  borderRadius: const BorderRadius.horizontal(
-                                    left: Radius.circular(16),
+                          : IntrinsicHeight(
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: const BorderRadius.horizontal(
+                                      left: Radius.circular(16),
+                                    ),
+                                    child: SizedBox(
+                                      width: 160,
+                                      child: AspectRatio(
+                                        aspectRatio: 16 / 9,
+                                        child: p.imageUrl != null && p.imageUrl!.isNotEmpty
+                                            ? Image.network(
+                                                p.imageUrl!,
+                                                fit: BoxFit.cover,
+                                                errorBuilder: (_, __, ___) =>
+                                                    _portfolioImagePlaceholder(context),
+                                              )
+                                            : _portfolioImagePlaceholder(context),
+                                      ),
+                                    ),
                                   ),
-                                  child: SizedBox(
-                                    width: 160,
-                                    child: p.imageUrl != null && p.imageUrl!.isNotEmpty
-                                        ? Image.network(
-                                            p.imageUrl!,
-                                            fit: BoxFit.cover,
-                                            errorBuilder: (_, __, ___) =>
-                                                _portfolioImagePlaceholder(context),
-                                          )
-                                        : _portfolioImagePlaceholder(context),
+                                  Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+                                      child: _portfolioCardContent(context, p),
+                                    ),
                                   ),
-                                ),
-                                Expanded(
-                                  child: Padding(
-                                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-                                    child: _portfolioCardContent(context, p),
-                                  ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                     ),
                   ),
