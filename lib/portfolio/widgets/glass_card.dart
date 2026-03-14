@@ -1,9 +1,11 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 
 import '../utils/portfolio_theme.dart';
 
-/// Solid card matching reference design: white/light background,
-/// subtle soft shadow, no glass or blur. Optional hover lift.
+/// Soft, glassy card used across the portfolio.
+/// Gradient, rounded corners, subtle blur and hover lift.
 class GlassCard extends StatefulWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
@@ -16,7 +18,7 @@ class GlassCard extends StatefulWidget {
     required this.child,
     this.padding = const EdgeInsets.all(24),
     this.margin = EdgeInsets.zero,
-    this.borderRadius = 4,
+    this.borderRadius = 16,
     this.onTap,
   });
 
@@ -29,34 +31,61 @@ class _GlassCardState extends State<GlassCard> {
 
   @override
   Widget build(BuildContext context) {
-    final card = AnimatedContainer(
-      duration: const Duration(milliseconds: 180),
+    final radius = BorderRadius.circular(widget.borderRadius);
+
+    final surface = AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
       curve: Curves.easeOutCubic,
       padding: widget.padding,
       decoration: BoxDecoration(
-        color: PortfolioTheme.card,
-        borderRadius: BorderRadius.circular(widget.borderRadius),
-        border: Border.all(color: PortfolioTheme.border, width: 1),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Colors.white.withOpacity(0.86),
+            PortfolioTheme.surface.withOpacity(0.95),
+          ],
+        ),
+        borderRadius: radius,
+        border: Border.all(
+          color: Colors.white.withOpacity(0.7),
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: _hovered ? 0.08 : 0.05),
-            blurRadius: _hovered ? 24 : 16,
-            offset: Offset(0, _hovered ? 8 : 4),
+            color: Colors.black.withValues(alpha: _hovered ? 0.11 : 0.06),
+            blurRadius: _hovered ? 26 : 18,
+            offset: Offset(0, _hovered ? 10 : 6),
           ),
         ],
       ),
       child: widget.child,
     );
 
+    final glass = ClipRRect(
+      borderRadius: radius,
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+        child: surface,
+      ),
+    );
+
+    final lifted = AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOutCubic,
+      transform: Matrix4.translationValues(0, _hovered ? -4 : 0, 0),
+      child: glass,
+    );
+
     final content = widget.onTap == null
-        ? card
+        ? lifted
         : Material(
             color: Colors.transparent,
-            borderRadius: BorderRadius.circular(widget.borderRadius),
+            borderRadius: radius,
             child: InkWell(
-              borderRadius: BorderRadius.circular(widget.borderRadius),
+              borderRadius: radius,
               onTap: widget.onTap,
-              child: card,
+              child: lifted,
             ),
           );
 

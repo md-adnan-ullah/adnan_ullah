@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:gems_responsive/gems_responsive.dart';
@@ -5,7 +7,9 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../models/portfolio_app.dart';
 import '../models/portfolio_project.dart';
+import '../models/github_repo.dart';
 import '../services/portfolio_app_service.dart';
+import '../services/github_service.dart';
 import '../utils/portfolio_theme.dart';
 import '../widgets/animated_section.dart';
 import '../widgets/glass_card.dart';
@@ -23,15 +27,18 @@ class PortfolioHomePage extends StatefulWidget {
 class _PortfolioHomePageState extends State<PortfolioHomePage> {
   final _scrollController = ScrollController();
   final _service = const PortfolioAppService();
+  final _githubService = const GithubService();
 
   late Future<List<PortfolioApp>> _appsFuture;
   late Future<List<PortfolioProject>> _projectsFuture;
+  late Future<List<GithubRepo>> _githubReposFuture;
 
   @override
   void initState() {
     super.initState();
     _appsFuture = _service.fetchApps();
     _projectsFuture = _service.fetchProjects();
+    _githubReposFuture = _githubService.fetchPinnedRepos();
   }
 
   @override
@@ -85,6 +92,18 @@ class _PortfolioHomePageState extends State<PortfolioHomePage> {
                   builder: (context, snapshot) {
                     final projects = snapshot.data ?? [];
                     return _PortfolioSection(projects: projects);
+                  },
+                ),
+              ),
+              AnimatedSection(
+                child: FutureBuilder<List<GithubRepo>>(
+                  future: _githubReposFuture,
+                  builder: (context, snapshot) {
+                    final repos = snapshot.data ?? [];
+                    if (repos.isEmpty) {
+                      return const SizedBox.shrink();
+                    }
+                    return _GithubReposSection(repos: repos);
                   },
                 ),
               ),
@@ -216,86 +235,154 @@ class _HeroSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isSmall = ResponsiveHelper.isSmallDevice(context);
-    final height = ResponsiveHelper.getScreenHeight(context);
+    final bannerHeight = isSmall ? 340.0 : 420.0;
 
-    return Container(
-      height: height * 0.88,
-      decoration: const BoxDecoration(
-        gradient: PortfolioTheme.heroGradient,
-      ),
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: isSmall ? 24 : 72,
-          vertical: isSmall ? 32 : 48,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'NEW TRANSFORMING APPS',
-              style: Theme.of(context).textTheme.displayMedium?.copyWith(
-                    color: PortfolioTheme.accentPrimary,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.5,
-                  ),
-            )
-                .animate()
-                .fadeIn(duration: 400.ms)
-                .moveX(begin: -20, end: 0),
-            const SizedBox(height: 12),
-            Text(
-              'I CREATE A NEW LEVEL OF MOBILE EXPERIENCE',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: PortfolioTheme.textPrimary,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: 0.3,
-                  ),
-            )
-                .animate()
-                .fadeIn(delay: 150.ms, duration: 450.ms)
-                .moveY(begin: 16, end: 0),
-            const SizedBox(height: 24),
-            Text(
-              'I design and build high-quality Android and Flutter apps with '
-              'clean architecture, smooth animations, and production-ready code.',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: PortfolioTheme.textSecondary,
-                    height: 1.6,
-                  ),
-            )
-                .animate()
-                .fadeIn(delay: 250.ms, duration: 450.ms)
-                .moveY(begin: 12, end: 0),
-            const SizedBox(height: 32),
-            Row(
-              children: [
-                GestureDetector(
-                  onTap: onViewApps,
-                  child: Text(
-                    'EXPLORE MY APPS',
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: PortfolioTheme.textPrimary,
-                          fontWeight: FontWeight.w600,
-                          decoration: TextDecoration.underline,
-                          decorationColor: PortfolioTheme.textPrimary,
-                        ),
-                  ),
-                )
-                    .animate()
-                    .fadeIn(delay: 350.ms, duration: 400.ms),
-                const SizedBox(width: 24),
-                ElevatedButton(
-                  onPressed: onContact,
-                  child: const Text('GET A FREE QUOTE'),
-                )
-                    .animate()
-                    .fadeIn(delay: 450.ms, duration: 400.ms)
-                    .scale(begin: const Offset(0.98, 0.98), end: const Offset(1, 1)),
-              ],
+    return SizedBox(
+      height: bannerHeight,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // Background image banner (portfolio / workspace feel)
+          ColorFiltered(
+            colorFilter: ColorFilter.mode(
+              Colors.black.withOpacity(0.25),
+              BlendMode.darken,
             ),
-          ],
-        ),
+            child: Image.network(
+              'https://images.unsplash.com/photo-1553877522-43269d4ea984'
+              '?auto=format&fit=crop&w=1600&q=80',
+              fit: BoxFit.cover,
+            ),
+          ),
+          // Subtle gradient overlay to match warm theme
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  PortfolioTheme.background.withOpacity(0.2),
+                  PortfolioTheme.background.withOpacity(0.5),
+                ],
+              ),
+            ),
+          ),
+          // Glassy content card
+          Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: isSmall ? 24 : 72,
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(18),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                  child: Container(
+                    constraints: const BoxConstraints(maxWidth: 900),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: isSmall ? 20 : 32,
+                      vertical: isSmall ? 20 : 28,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.72),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.65),
+                      ),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'MOBILE APP DESIGN & DEVELOPMENT',
+                          style: Theme.of(context)
+                              .textTheme
+                              .labelMedium
+                              ?.copyWith(
+                                color: PortfolioTheme.textSecondary,
+                                letterSpacing: 1.3,
+                              ),
+                        )
+                            .animate()
+                            .fadeIn(duration: 350.ms)
+                            .moveX(begin: -16, end: 0),
+                        const SizedBox(height: 10),
+                        Text(
+                          'NEW TRANSFORMING APP EXPERIENCES',
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineMedium
+                              ?.copyWith(
+                                color: PortfolioTheme.accentPrimary,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.6,
+                              ),
+                        )
+                            .animate()
+                            .fadeIn(delay: 100.ms, duration: 450.ms)
+                            .moveY(begin: 18, end: 0),
+                        const SizedBox(height: 16),
+                        Text(
+                          'From concept to deployment, I create polished Flutter and Android apps '
+                          'with clear UX, strong architecture, and production‑ready animations.',
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodyLarge
+                              ?.copyWith(
+                                color: PortfolioTheme.textSecondary,
+                                height: 1.6,
+                              ),
+                        )
+                            .animate()
+                            .fadeIn(delay: 220.ms, duration: 450.ms)
+                            .moveY(begin: 12, end: 0),
+                        const SizedBox(height: 22),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            GestureDetector(
+                              onTap: onViewApps,
+                              child: Text(
+                                'EXPLORE MY APPS',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelLarge
+                                    ?.copyWith(
+                                      color: PortfolioTheme.textPrimary,
+                                      fontWeight: FontWeight.w600,
+                                      decoration: TextDecoration.underline,
+                                      decorationColor:
+                                          PortfolioTheme.textPrimary,
+                                    ),
+                              ),
+                            )
+                                .animate()
+                                .fadeIn(
+                                    delay: 320.ms, duration: 400.ms)
+                                .moveY(begin: 8, end: 0),
+                            const SizedBox(width: 24),
+                            ElevatedButton(
+                              onPressed: onContact,
+                              child: const Text('START YOUR PROJECT'),
+                            )
+                                .animate()
+                                .fadeIn(
+                                    delay: 380.ms, duration: 400.ms)
+                                .scale(
+                                  begin: const Offset(0.98, 0.98),
+                                  end: const Offset(1, 1),
+                                ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -628,6 +715,140 @@ class _PortfolioSection extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+class _GithubReposSection extends StatelessWidget {
+  final List<GithubRepo> repos;
+
+  const _GithubReposSection({required this.repos});
+
+  @override
+  Widget build(BuildContext context) {
+    final isSmall = ResponsiveHelper.isSmallDevice(context);
+    final width = ResponsiveHelper.getScreenWidth(context);
+    final crossAxisCount = isSmall
+        ? 1
+        : width < 1000
+            ? 2
+            : 3;
+
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: isSmall ? 24 : 72,
+        vertical: 48,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SectionHeader(
+            title: 'GitHub Projects',
+            subtitle:
+                'Open‑source repositories that showcase how I write and structure code.',
+          ),
+          const SizedBox(height: 24),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: crossAxisCount,
+              mainAxisSpacing: 20,
+              crossAxisSpacing: 20,
+              childAspectRatio: 1.1,
+            ),
+            itemCount: repos.length,
+            itemBuilder: (context, index) {
+              final repo = repos[index];
+              return _GithubRepoCard(repo: repo);
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _GithubRepoCard extends StatelessWidget {
+  final GithubRepo repo;
+
+  const _GithubRepoCard({required this.repo});
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            repo.displayName,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: PortfolioTheme.textPrimary,
+                  fontWeight: FontWeight.w600,
+                ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            repo.description.isEmpty
+                ? 'No description provided.'
+                : repo.description,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: PortfolioTheme.textSecondary,
+                ),
+          ),
+          const Spacer(),
+          Row(
+            children: [
+              if (repo.language.isNotEmpty) ...[
+                Icon(
+                  Icons.circle,
+                  size: 8,
+                  color: PortfolioTheme.accentPrimary,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  repo.language,
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: PortfolioTheme.textSecondary,
+                      ),
+                ),
+              ],
+              const SizedBox(width: 16),
+              const Icon(
+                Icons.star_border,
+                size: 14,
+                color: PortfolioTheme.textMuted,
+              ),
+              const SizedBox(width: 4),
+              Text(
+                repo.stargazersCount.toString(),
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: PortfolioTheme.textSecondary,
+                    ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          TextButton(
+            onPressed: () => _launchGithub(repo.htmlUrl),
+            style: TextButton.styleFrom(
+              padding: EdgeInsets.zero,
+              foregroundColor: PortfolioTheme.accentPrimary,
+            ),
+            child: const Text('VIEW ON GITHUB'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+Future<void> _launchGithub(String url) async {
+  final uri = Uri.tryParse(url);
+  if (uri == null) return;
+  if (await canLaunchUrl(uri)) {
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 }
 
