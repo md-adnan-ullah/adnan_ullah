@@ -91,36 +91,71 @@ class _PortfolioHomePageState extends State<PortfolioHomePage> {
               AnimatedSection(
                 child: const _ContactSection(),
               ),
+              _Footer(
+                onNavigateToApps: () => _scrollTo(900),
+                onNavigateToPortfolio: () => _scrollTo(1400),
+                onNavigateToPricing: () => _scrollTo(600),
+                onNavigateToContact: () => _scrollTo(2200),
+              ),
               SizedBox(height: isSmall ? 32 : 48),
             ],
           ),
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  if (!isSmall)
+                    Row(
+                      children: [
+                        _NavLink(label: 'Work', onTap: () => _scrollTo(900)),
+                        _NavLink(
+                          label: 'Portfolio',
+                          onTap: () => _scrollTo(1400),
+                        ),
+                        _NavLink(
+                          label: 'Pricing',
+                          onTap: () => _scrollTo(600),
+                        ),
+                      ],
+                    )
+                  else
+                    const SizedBox.shrink(),
                   GestureDetector(
                     onTap: () => _scrollTo(0),
                     child: Text(
-                      'AU',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            color: PortfolioTheme.accentPrimary,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -0.6,
+                      'ADNAN ULLAH',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: PortfolioTheme.textPrimary,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.2,
                           ),
                     ),
                   ),
                   if (!isSmall)
                     Row(
                       children: [
-                        _NavLink(label: 'Home', onTap: () => _scrollTo(0)),
-                        _NavLink(label: 'Apps', onTap: () => _scrollTo(900)),
                         _NavLink(
-                            label: 'Portfolio', onTap: () => _scrollTo(1400)),
-                        _NavLink(
-                            label: 'Contact', onTap: () => _scrollTo(2200)),
+                          label: 'Contact',
+                          onTap: () => _scrollTo(2200),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'MENU',
+                          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                                color: PortfolioTheme.textPrimary,
+                              ),
+                        ),
                       ],
+                    )
+                  else
+                    Text(
+                      'MENU',
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                            color: PortfolioTheme.textPrimary,
+                          ),
                     ),
                 ],
               ),
@@ -132,23 +167,37 @@ class _PortfolioHomePageState extends State<PortfolioHomePage> {
   }
 }
 
-class _NavLink extends StatelessWidget {
+class _NavLink extends StatefulWidget {
   final String label;
   final VoidCallback onTap;
 
   const _NavLink({required this.label, required this.onTap});
 
   @override
+  State<_NavLink> createState() => _NavLinkState();
+}
+
+class _NavLinkState extends State<_NavLink> {
+  bool _hovered = false;
+
+  @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(left: 24),
-      child: GestureDetector(
-        onTap: onTap,
-        child: Text(
-          label,
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        onEnter: (_) => setState(() => _hovered = true),
+        onExit: (_) => setState(() => _hovered = false),
+        child: GestureDetector(
+          onTap: widget.onTap,
+          child: Text(
+          widget.label,
           style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                color: PortfolioTheme.textSecondary,
+                color: _hovered
+                    ? PortfolioTheme.accentPrimary
+                    : PortfolioTheme.textPrimary,
               ),
+        ),
         ),
       ),
     );
@@ -170,7 +219,7 @@ class _HeroSection extends StatelessWidget {
     final height = ResponsiveHelper.getScreenHeight(context);
 
     return Container(
-      height: height * 0.9,
+      height: height * 0.88,
       decoration: const BoxDecoration(
         gradient: PortfolioTheme.heroGradient,
       ),
@@ -184,62 +233,65 @@ class _HeroSection extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'Hello, I’m',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: PortfolioTheme.textSecondary,
-                  ),
-            ).animate().fadeIn(duration: 400.ms).moveX(begin: -20, end: 0),
-            const SizedBox(height: 8),
-            Text(
-              'Adnan Ullah',
+              'NEW TRANSFORMING APPS',
               style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                    color: PortfolioTheme.accentPrimary,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.5,
+                  ),
+            )
+                .animate()
+                .fadeIn(duration: 400.ms)
+                .moveX(begin: -20, end: 0),
+            const SizedBox(height: 12),
+            Text(
+              'I CREATE A NEW LEVEL OF MOBILE EXPERIENCE',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: PortfolioTheme.textPrimary,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 0.3,
                   ),
             )
                 .animate()
                 .fadeIn(delay: 150.ms, duration: 450.ms)
-                .moveY(begin: 24, end: 0),
-            const SizedBox(height: 12),
+                .moveY(begin: 16, end: 0),
+            const SizedBox(height: 24),
             Text(
-              'Mobile App Developer',
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    color: PortfolioTheme.accentSecondary,
+              'I design and build high-quality Android and Flutter apps with '
+              'clean architecture, smooth animations, and production-ready code.',
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: PortfolioTheme.textSecondary,
+                    height: 1.6,
                   ),
             )
                 .animate()
                 .fadeIn(delay: 250.ms, duration: 450.ms)
-                .moveY(begin: 20, end: 0),
-            const SizedBox(height: 20),
-            Text(
-              'I design and build high-quality Android and Flutter apps with\n'
-              'clean architecture, smooth animations, and production-ready code.',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: PortfolioTheme.textSecondary,
-                  ),
-            )
-                .animate()
-                .fadeIn(delay: 350.ms, duration: 450.ms)
-                .moveY(begin: 16, end: 0),
+                .moveY(begin: 12, end: 0),
             const SizedBox(height: 32),
-            Wrap(
-              spacing: 16,
-              runSpacing: 12,
+            Row(
               children: [
+                GestureDetector(
+                  onTap: onViewApps,
+                  child: Text(
+                    'EXPLORE MY APPS',
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: PortfolioTheme.textPrimary,
+                          fontWeight: FontWeight.w600,
+                          decoration: TextDecoration.underline,
+                          decorationColor: PortfolioTheme.textPrimary,
+                        ),
+                  ),
+                )
+                    .animate()
+                    .fadeIn(delay: 350.ms, duration: 400.ms),
+                const SizedBox(width: 24),
                 ElevatedButton(
-                  onPressed: onViewApps,
-                  child: const Text('View My Apps'),
+                  onPressed: onContact,
+                  child: const Text('GET A FREE QUOTE'),
                 )
                     .animate()
                     .fadeIn(delay: 450.ms, duration: 400.ms)
-                    .scale(begin: const Offset(0.95, 0.95), end: const Offset(1, 1)),
-                OutlinedButton(
-                  onPressed: onContact,
-                  child: const Text('Contact Me'),
-                )
-                    .animate()
-                    .fadeIn(delay: 550.ms, duration: 400.ms)
-                    .scale(begin: const Offset(0.95, 0.95), end: const Offset(1, 1)),
+                    .scale(begin: const Offset(0.98, 0.98), end: const Offset(1, 1)),
               ],
             ),
           ],
@@ -543,9 +595,11 @@ class _PortfolioSection extends StatelessWidget {
                                           ),
                                           decoration: BoxDecoration(
                                             color:
-                                                PortfolioTheme.glassBackground,
+                                                PortfolioTheme.surface,
                                             borderRadius:
-                                                BorderRadius.circular(999),
+                                                BorderRadius.circular(4),
+                                            border: Border.all(
+                                                color: PortfolioTheme.border),
                                           ),
                                           child: Text(
                                             t,
@@ -761,6 +815,116 @@ class _ContactFormState extends State<_ContactForm> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _Footer extends StatelessWidget {
+  const _Footer({
+    required this.onNavigateToApps,
+    required this.onNavigateToPortfolio,
+    required this.onNavigateToPricing,
+    required this.onNavigateToContact,
+  });
+
+  final VoidCallback onNavigateToApps;
+  final VoidCallback onNavigateToPortfolio;
+  final VoidCallback onNavigateToPricing;
+  final VoidCallback onNavigateToContact;
+
+  static const String _email = 'saadnanullah@gmail.com';
+  static const String _linkedIn = 'https://linkedin.com/in/adnan-ullah';
+  static const String _github = 'https://github.com/md-adnan-ullah';
+
+  @override
+  Widget build(BuildContext context) {
+    final isSmall = ResponsiveHelper.isSmallDevice(context);
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(
+        horizontal: isSmall ? 24 : 72,
+        vertical: 48,
+      ),
+      decoration: const BoxDecoration(
+        color: PortfolioTheme.accentPrimary,
+      ),
+      child: Column(
+        children: [
+          Text(
+            'ADNAN ULLAH',
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.2,
+                ),
+          ),
+          const SizedBox(height: 24),
+          Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 20,
+            runSpacing: 12,
+            children: [
+              _FooterLink(label: 'Portfolio', onTap: onNavigateToPortfolio),
+              _FooterLink(label: 'Apps', onTap: onNavigateToApps),
+              _FooterLink(label: 'Pricing', onTap: onNavigateToPricing),
+              _FooterLink(label: 'Contact', onTap: onNavigateToContact),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.email_outlined, color: Colors.white, size: 20),
+                onPressed: () => _launch('mailto:$_email'),
+              ),
+              IconButton(
+                icon: const Icon(Icons.link, color: Colors.white, size: 20),
+                onPressed: () => _launch(_linkedIn),
+              ),
+              IconButton(
+                icon: const Icon(Icons.code, color: Colors.white, size: 20),
+                onPressed: () => _launch(_github),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Privacy policy · Website by Adnan Ullah',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Colors.white70,
+                ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static Future<void> _launch(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
+}
+
+class _FooterLink extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+
+  const _FooterLink({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+              color: Colors.white,
+            ),
       ),
     );
   }

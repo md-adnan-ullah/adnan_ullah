@@ -20,10 +20,11 @@ class SectionHeader extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          title,
+          title.toUpperCase(),
           style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                 color: PortfolioTheme.textPrimary,
                 fontWeight: FontWeight.w700,
+                letterSpacing: 0.5,
               ),
         ),
         if (subtitle != null && subtitle!.isNotEmpty) ...[
@@ -51,4 +52,3 @@ class SectionHeader extends StatelessWidget {
     );
   }
 }
-

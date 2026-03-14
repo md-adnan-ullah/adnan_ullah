@@ -2,52 +2,46 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// Premium dark-first theme for Adnan Ullah's portfolio.
-///
-/// Inspired by Apple, Vercel, Linear, and Stripe – with soft
-/// gradients, glassmorphism, and clean typography.
+/// Light theme matching Kreston-style design: warm beige background,
+/// maroon/burgundy accent, clean typography, solid components (no glass).
 class PortfolioTheme {
   PortfolioTheme._();
 
-  // Base colors
-  static const Color background = Color(0xFF050816);
-  static const Color surface = Color(0xFF0B1020);
-  static const Color card = Color(0xFF111827);
+  // Light background – warm beige / off-white
+  static const Color background = Color(0xFFEDEAE5);
+  static const Color surface = Color(0xFFF5F3F0);
+  static const Color card = Color(0xFFFFFFFF);
 
-  // Accent
-  static const Color accentPrimary = Color(0xFF6366F1);
-  static const Color accentSecondary = Color(0xFF8B5CF6);
-  static const Color accentTertiary = Color(0xFFA855F7);
+  // Accent – deep maroon / burgundy
+  static const Color accentPrimary = Color(0xFF5B2C3B);
+  static const Color accentSecondary = Color(0xFF6B3A4A);
 
-  // Text
-  static const Color textPrimary = Color(0xFFF9FAFB);
-  static const Color textSecondary = Color(0xFF9CA3AF);
+  // Text on light background
+  static const Color textPrimary = Color(0xFF1A1A1A);
+  static const Color textSecondary = Color(0xFF4A4A4A);
   static const Color textMuted = Color(0xFF6B7280);
 
-  // Glass
-  static const Color glassBackground = Color(0x141F2937);
-  static const Color glassBorder = Color(0x26FFFFFF);
+  // Dividers and borders
+  static const Color divider = Color(0xFFE0DDD8);
+  static const Color border = Color(0xFFE5E2DD);
 
-  // Status
+  // Status (keep bKash for payment button)
   static const Color bkash = Color(0xFFE2136E);
 
+  // Hero / section background (same as page for consistency)
   static const LinearGradient heroGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [
-      Color(0xFF050816),
-      Color(0xFF020617),
-      Color(0xFF0B1020),
-    ],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [Color(0xFFEDEAE5), Color(0xFFE9E5E0)],
   );
 
-  static ThemeData dark() {
+  static ThemeData light() {
     final baseText = GoogleFonts.interTextTheme();
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.dark,
+      brightness: Brightness.light,
       scaffoldBackgroundColor: background,
-      colorScheme: ColorScheme.dark(
+      colorScheme: ColorScheme.light(
         primary: accentPrimary,
         secondary: accentSecondary,
         surface: surface,
@@ -59,18 +53,18 @@ class PortfolioTheme {
       ),
       textTheme: baseText.copyWith(
         displayLarge: baseText.displayLarge?.copyWith(
-          color: textPrimary,
+          color: accentPrimary,
           fontWeight: FontWeight.w700,
-          letterSpacing: -1.5,
+          letterSpacing: -0.5,
         ),
         displayMedium: baseText.displayMedium?.copyWith(
-          color: textPrimary,
+          color: accentPrimary,
           fontWeight: FontWeight.w700,
-          letterSpacing: -1.2,
+          letterSpacing: -0.3,
         ),
         headlineMedium: baseText.headlineMedium?.copyWith(
           color: textPrimary,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w700,
         ),
         bodyLarge: baseText.bodyLarge?.copyWith(
           color: textSecondary,
@@ -88,7 +82,8 @@ class PortfolioTheme {
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        systemOverlayStyle: SystemUiOverlayStyle.light,
+        systemOverlayStyle: SystemUiOverlayStyle.dark,
+        iconTheme: const IconThemeData(color: textPrimary),
         titleTextStyle: baseText.titleLarge?.copyWith(
           color: textPrimary,
           fontWeight: FontWeight.w600,
@@ -101,32 +96,39 @@ class PortfolioTheme {
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(4),
           ),
+          elevation: 0,
           textStyle: baseText.labelLarge?.copyWith(
             fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: textPrimary,
+          side: const BorderSide(color: border),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(4),
           ),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
-        filled: true,
-        fillColor: glassBackground,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: glassBorder),
+        filled: false,
+        border: UnderlineInputBorder(
+          borderSide: BorderSide(color: divider),
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: glassBorder),
+        enabledBorder: UnderlineInputBorder(
+          borderSide: BorderSide(color: divider),
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: accentPrimary, width: 1.5),
+        focusedBorder: const UnderlineInputBorder(
+          borderSide: BorderSide(color: accentPrimary, width: 1.5),
         ),
-        labelStyle: const TextStyle(color: textSecondary),
+        labelStyle: const TextStyle(color: textMuted),
         hintStyle: const TextStyle(color: textMuted),
       ),
+      dividerColor: divider,
     );
   }
 }
-

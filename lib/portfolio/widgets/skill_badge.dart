@@ -18,7 +18,7 @@ class SkillBadge extends StatelessWidget {
     return GlassCard(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       margin: const EdgeInsets.only(right: 12, bottom: 12),
-      borderRadius: 999,
+      borderRadius: 4,
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -39,4 +39,3 @@ class SkillBadge extends StatelessWidget {
     );
   }
 }
-

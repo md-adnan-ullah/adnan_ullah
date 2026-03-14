@@ -1,10 +1,10 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 
 import '../utils/portfolio_theme.dart';
 
-class GlassCard extends StatelessWidget {
+/// Solid card matching reference design: white/light background,
+/// subtle soft shadow, no glass or blur. Optional hover lift.
+class GlassCard extends StatefulWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
   final EdgeInsetsGeometry margin;
@@ -16,47 +16,58 @@ class GlassCard extends StatelessWidget {
     required this.child,
     this.padding = const EdgeInsets.all(24),
     this.margin = EdgeInsets.zero,
-    this.borderRadius = 20,
+    this.borderRadius = 4,
     this.onTap,
   });
 
   @override
+  State<GlassCard> createState() => _GlassCardState();
+}
+
+class _GlassCardState extends State<GlassCard> {
+  bool _hovered = false;
+
+  @override
   Widget build(BuildContext context) {
-    final content = ClipRRect(
-      borderRadius: BorderRadius.circular(borderRadius),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-        child: Container(
-          padding: padding,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(borderRadius),
-            color: PortfolioTheme.glassBackground,
-            border: Border.all(
-              color: PortfolioTheme.glassBorder,
-              width: 1,
-            ),
+    final card = AnimatedContainer(
+      duration: const Duration(milliseconds: 180),
+      curve: Curves.easeOutCubic,
+      padding: widget.padding,
+      decoration: BoxDecoration(
+        color: PortfolioTheme.card,
+        borderRadius: BorderRadius.circular(widget.borderRadius),
+        border: Border.all(color: PortfolioTheme.border, width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: _hovered ? 0.08 : 0.05),
+            blurRadius: _hovered ? 24 : 16,
+            offset: Offset(0, _hovered ? 8 : 4),
           ),
-          child: child,
-        ),
+        ],
       ),
+      child: widget.child,
     );
 
-    if (onTap == null) {
-      return Padding(padding: margin, child: content);
-    }
+    final content = widget.onTap == null
+        ? card
+        : Material(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(widget.borderRadius),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(widget.borderRadius),
+              onTap: widget.onTap,
+              child: card,
+            ),
+          );
 
     return Padding(
-      padding: margin,
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(borderRadius),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(borderRadius),
-          onTap: onTap,
-          child: content,
-        ),
+      padding: widget.margin,
+      child: MouseRegion(
+        onEnter: (_) => setState(() => _hovered = true),
+        onExit: (_) => setState(() => _hovered = false),
+        cursor: widget.onTap != null ? SystemMouseCursors.click : MouseCursor.defer,
+        child: content,
       ),
     );
   }
 }
-

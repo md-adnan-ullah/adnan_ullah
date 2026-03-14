@@ -104,7 +104,7 @@ class _Header extends StatelessWidget {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: PortfolioTheme.glassBackground,
+                          color: PortfolioTheme.surface,
                           borderRadius: BorderRadius.circular(999),
                         ),
                         child: Text(
@@ -141,7 +141,7 @@ class _ScreenshotsCarousel extends StatelessWidget {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
             color: PortfolioTheme.card,
-            border: Border.all(color: PortfolioTheme.glassBorder),
+            border: Border.all(color: PortfolioTheme.border),
           ),
           child: url.isEmpty
               ? const Center(

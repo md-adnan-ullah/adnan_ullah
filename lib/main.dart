@@ -17,7 +17,7 @@ class PortfolioApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Adnan Ullah — Mobile App Developer',
-      theme: PortfolioTheme.dark(),
+      theme: PortfolioTheme.light(),
       home: const PortfolioHomePage(),
       debugShowCheckedModeBanner: false,
     );
