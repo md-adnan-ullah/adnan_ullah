@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../models/portfolio_app.dart';
 import '../models/portfolio_project.dart';
 import '../models/github_repo.dart';
+import '../config/lightroom_preset_product.dart';
 import '../services/portfolio_app_service.dart';
 import '../services/github_service.dart';
 import '../utils/portfolio_theme.dart';
@@ -16,6 +17,7 @@ import '../widgets/glass_card.dart';
 import '../widgets/section_header.dart';
 import '../widgets/skill_badge.dart';
 import 'app_detail_page.dart';
+import 'lightroom_presets_page.dart';
 import 'purchase_admin_page.dart';
 
 class PortfolioHomePage extends StatefulWidget {
@@ -89,6 +91,9 @@ class _PortfolioHomePageState extends State<PortfolioHomePage> {
                 ),
               ),
               AnimatedSection(
+                child: _PresetSection(presets: kLightroomPresetProducts),
+              ),
+              AnimatedSection(
                 child: FutureBuilder<List<PortfolioProject>>(
                   future: _projectsFuture,
                   builder: (context, snapshot) {
@@ -113,12 +118,19 @@ class _PortfolioHomePageState extends State<PortfolioHomePage> {
                 child: const _ContactSection(),
               ),
               RepaintBoundary(
-                child: _Footer(
-                  onNavigateToApps: () => _scrollTo(900),
-                  onNavigateToPortfolio: () => _scrollTo(1400),
-                  onNavigateToPricing: () => _scrollTo(600),
-                  onNavigateToContact: () => _scrollTo(2200),
-                  onAdminTap: () async {
+                child:               _Footer(
+                onNavigateToApps: () => _scrollTo(900),
+                onNavigateToPortfolio: () => _scrollTo(1400),
+                onNavigateToPricing: () => _scrollTo(600),
+                onNavigateToContact: () => _scrollTo(2200),
+                onNavigateToPresets: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const LightroomPresetsPage(),
+                    ),
+                  );
+                },
+                onAdminTap: () async {
                   final ok = await PurchaseAdminPage.checkCredentials(context);
                   if (ok && context.mounted) {
                     Navigator.of(context).push(
@@ -197,6 +209,16 @@ class _PortfolioHomePageState extends State<PortfolioHomePage> {
                                   _NavLink(
                                     label: 'Pricing',
                                     onTap: () => _scrollTo(600),
+                                  ),
+                                  _NavLink(
+                                    label: 'Presets',
+                                    onTap: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute<void>(
+                                          builder: (_) => const LightroomPresetsPage(),
+                                        ),
+                                      );
+                                    },
                                   ),
                                 ],
                               )
@@ -776,7 +798,7 @@ class _AppsSection extends StatelessWidget {
               crossAxisCount: crossAxisCount,
               mainAxisSpacing: 20,
               crossAxisSpacing: 20,
-              childAspectRatio: 0.9,
+              childAspectRatio: 0.82,
             ),
             itemCount: apps.length,
             itemBuilder: (context, index) {
@@ -893,6 +915,104 @@ class _AppCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class _PresetSection extends StatelessWidget {
+  const _PresetSection({required this.presets});
+
+  final List<PortfolioApp> presets;
+
+  @override
+  Widget build(BuildContext context) {
+    final isSmall = ResponsiveHelper.isSmallDevice(context);
+    final width = ResponsiveHelper.getScreenWidth(context);
+    final crossAxisCount = isSmall
+        ? 1
+        : width < 1000
+            ? 2
+            : 3;
+
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: isSmall ? 24 : 72,
+        vertical: 24,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SectionHeader(
+            title: 'Lightroom Presets',
+            subtitle: 'Preset packs for portrait, travel, and moody edits.',
+          ),
+          const SizedBox(height: 24),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: crossAxisCount,
+              mainAxisSpacing: 20,
+              crossAxisSpacing: 20,
+              childAspectRatio: 0.9,
+            ),
+            itemCount: presets.length,
+            itemBuilder: (context, index) {
+              final preset = presets[index];
+              return GlassCard(
+                padding: EdgeInsets.zero,
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => LightroomPresetsPage(product: preset),
+                    ),
+                  );
+                },
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                        child: SizedBox.expand(
+                          child: preset.iconUrl != null && preset.iconUrl!.isNotEmpty
+                              ? Image.network(
+                                  preset.iconUrl!,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, _, _) => _presetThumbPlaceholder(),
+                                )
+                              : _presetThumbPlaceholder(),
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+                      child: Text(
+                        preset.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              color: PortfolioTheme.textPrimary,
+                              fontWeight: FontWeight.w700,
+                            ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+Widget _presetThumbPlaceholder() {
+  return Container(
+    color: PortfolioTheme.accentPrimary.withValues(alpha: 0.12),
+    child: const Center(
+      child: Icon(Icons.tune_rounded, color: PortfolioTheme.accentPrimary, size: 42),
+    ),
+  );
 }
 
 class _PortfolioSection extends StatelessWidget {
@@ -1413,6 +1533,7 @@ class _Footer extends StatelessWidget {
     required this.onNavigateToPortfolio,
     required this.onNavigateToPricing,
     required this.onNavigateToContact,
+    required this.onNavigateToPresets,
     required this.onAdminTap,
   });
 
@@ -1420,6 +1541,7 @@ class _Footer extends StatelessWidget {
   final VoidCallback onNavigateToPortfolio;
   final VoidCallback onNavigateToPricing;
   final VoidCallback onNavigateToContact;
+  final VoidCallback onNavigateToPresets;
   final VoidCallback onAdminTap;
 
   static const String _email = 'saadnanullah@gmail.com';
@@ -1458,6 +1580,7 @@ class _Footer extends StatelessWidget {
               _FooterLink(label: 'Portfolio', onTap: onNavigateToPortfolio),
               _FooterLink(label: 'Apps', onTap: onNavigateToApps),
               _FooterLink(label: 'Pricing', onTap: onNavigateToPricing),
+              _FooterLink(label: 'Presets', onTap: onNavigateToPresets),
               _FooterLink(label: 'Contact', onTap: onNavigateToContact),
               _FooterLink(label: 'Admin', onTap: onAdminTap),
             ],
