@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:gems_responsive/gems_responsive.dart';
@@ -162,7 +163,10 @@ class _PortfolioHomePageState extends State<PortfolioHomePage> {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(24),
                     child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                      filter: ImageFilter.blur(
+                        sigmaX: kIsWeb ? 8 : 20,
+                        sigmaY: kIsWeb ? 8 : 20,
+                      ),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 20,
@@ -212,13 +216,7 @@ class _PortfolioHomePageState extends State<PortfolioHomePage> {
                                   ),
                                   _NavLink(
                                     label: 'Presets',
-                                    onTap: () {
-                                      Navigator.of(context).push(
-                                        MaterialPageRoute<void>(
-                                          builder: (_) => const LightroomPresetsPage(),
-                                        ),
-                                      );
-                                    },
+                                    onTap: () => _scrollTo(1250),
                                   ),
                                 ],
                               )
@@ -409,7 +407,10 @@ class _HeroSection extends StatelessWidget {
                 child: ClipRRect(
                 borderRadius: BorderRadius.circular(20),
                 child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+                  filter: ImageFilter.blur(
+                    sigmaX: kIsWeb ? 10 : 24,
+                    sigmaY: kIsWeb ? 10 : 24,
+                  ),
                   child: Container(
                     constraints: const BoxConstraints(maxWidth: 900),
                     padding: EdgeInsets.symmetric(
@@ -1070,37 +1071,33 @@ class _PortfolioSection extends StatelessWidget {
                                 ),
                               ],
                             )
-                          : IntrinsicHeight(
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: const BorderRadius.horizontal(
-                                      left: Radius.circular(16),
-                                    ),
-                                    child: SizedBox(
-                                      width: 160,
-                                      child: AspectRatio(
-                                        aspectRatio: 16 / 9,
-                                        child: p.imageUrl != null && p.imageUrl!.isNotEmpty
-                                            ? Image.network(
-                                                p.imageUrl!,
-                                                fit: BoxFit.cover,
-                                                errorBuilder: (_, __, ___) =>
-                                                    _portfolioImagePlaceholder(context),
-                                              )
-                                            : _portfolioImagePlaceholder(context),
-                                      ),
-                                    ),
+                          : Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                ClipRRect(
+                                  borderRadius: const BorderRadius.horizontal(
+                                    left: Radius.circular(16),
                                   ),
-                                  Expanded(
-                                    child: Padding(
-                                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-                                      child: _portfolioCardContent(context, p),
-                                    ),
+                                  child: SizedBox(
+                                    width: 160,
+                                    height: 130,
+                                    child: p.imageUrl != null && p.imageUrl!.isNotEmpty
+                                        ? Image.network(
+                                            p.imageUrl!,
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (_, __, ___) =>
+                                                _portfolioImagePlaceholder(context),
+                                          )
+                                        : _portfolioImagePlaceholder(context),
                                   ),
-                                ],
-                              ),
+                                ),
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+                                    child: _portfolioCardContent(context, p),
+                                  ),
+                                ),
+                              ],
                             ),
                     ),
                   ),

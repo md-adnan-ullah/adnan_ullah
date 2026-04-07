@@ -1,8 +1,7 @@
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-
-import '../utils/portfolio_theme.dart';
 
 /// Soft, glassy card used across the portfolio.
 /// Gradient, rounded corners, subtle blur and hover lift.
@@ -62,13 +61,16 @@ class _GlassCardState extends State<GlassCard> {
       child: widget.child,
     );
 
-    final glass = ClipRRect(
-      borderRadius: radius,
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-        child: surface,
-      ),
-    );
+    // BackdropFilter on many cards is expensive on web; keep lightweight there.
+    final glass = kIsWeb
+        ? ClipRRect(borderRadius: radius, child: surface)
+        : ClipRRect(
+            borderRadius: radius,
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+              child: surface,
+            ),
+          );
 
     final lifted = AnimatedContainer(
       duration: const Duration(milliseconds: 200),
